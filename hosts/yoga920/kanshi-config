@@ -1,0 +1,18 @@
+# -> ~/.config/kanshi/config
+# Deklarative Monitorprofile. Wichtig fuer Schulungsraeume mit Beamer.
+
+profile mobil {
+    output eDP-1 enable mode 3840x2160 position 0,0 scale 2
+}
+
+profile beamer {
+    output eDP-1 enable mode 3840x2160 position 0,0 scale 2
+    # Beamer typisch 1920x1080, Skalierung 1. Gespiegelt waere hier falsch --
+    # bei unterschiedlicher Skalierung erzwingt Sway sonst Software-Kopie.
+    output HDMI-A-1 enable mode 1920x1080 position 1920,0 scale 1
+}
+
+profile dock {
+    output eDP-1 disable
+    output DP-1 enable mode 2560x1440 position 0,0 scale 1
+}

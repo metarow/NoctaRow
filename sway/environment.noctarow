@@ -1,0 +1,17 @@
+# Noctarow: wird an /etc/sway/environment angehaengt.
+#
+# BEWUSST NICHT GESETZT: GDK_SCALE, GDK_DPI_SCALE, QT_SCALE_FACTOR,
+# QT_AUTO_SCREEN_SCALE_FACTOR. Unter Wayland handeln GTK4 und Qt6 die
+# Skalierung direkt mit dem Compositor aus; zusaetzliche Faktoren
+# multiplizieren sich und ergeben doppelt skalierte Fenster.
+
+QT_QPA_PLATFORM=wayland;xcb
+QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+
+# Sway skaliert die Cursorgroesse automatisch mit dem Output-Scale.
+# Bei scale 2 wird daraus ein 48px-Cursor. NICHT auf 48 setzen.
+XCURSOR_SIZE=24
+XCURSOR_THEME=Adwaita
+
+MOZ_ENABLE_WAYLAND=1
+ELECTRON_OZONE_PLATFORM_HINT=auto
