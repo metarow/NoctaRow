@@ -8,10 +8,15 @@ Betreiber: MetaRow Software UG
 
 > [!info] Zielarchitektur vs. aktueller Stand
 > Dieses `Containerfile` installiert aktuell `noctalia-shell`, `nushell` und
-> `helix` alle per `dnf`. Geplant ist eine Brew-Integration: `nushell`/`helix`
-> künftig zur Laufzeit über Homebrew (`/var/home/linuxbrew`) statt im Image,
-> Details in `docs/15-noctarow-basis-image.md`. Bis diese Umstellung gebaut
-> und verifiziert ist, gilt das hier beschriebene reine-dnf-Vorgehen.
+> `helix` alle per `dnf`. Aktiver Plan ist eine Brew-Integration:
+> `nushell`/`helix` künftig zur Laufzeit über Homebrew (`/var/home/linuxbrew`)
+> statt im Image, Login-Shell bleibt `bash`, `nushell` wird nur dem Terminal
+> zugeordnet. Details in `docs/15-noctarow-basis-image.md`. Bis diese
+> Umstellung gebaut und verifiziert ist, gilt das hier beschriebene
+> reine-dnf-Vorgehen.
+>
+> Der Yoga 920 ist die erste und aktuell einzige Plattform für das
+> Basis-Image — kein Cross-Build, kein Umweg über eine andere Maschine.
 
 ## Struktur
 
@@ -37,9 +42,9 @@ Betreiber: MetaRow Software UG
 - **Skalierung:** eDP-1 fraktional auf `scale 1.5` (XWayland-Unschärfe bewusst
   akzeptiert). Rückweg auf `scale 2`, falls eine Schulungsflotte Ziel wird.
 
-## Bauen (auf dem Yoga, Nushell)
+## Bauen (auf dem Yoga, bash)
 
-```nu
+```bash
 cd ~/projekte/noctarow
 sudo podman build -t quay.io/metarow/noctarow:44-amd64 .
 ```
@@ -49,14 +54,14 @@ sonst findet `bootc switch --transport containers-storage` es nicht.
 
 ## Wechseln
 
-```nu
+```bash
 sudo bootc switch --transport containers-storage quay.io/metarow/noctarow:44-amd64
 sudo systemctl reboot
 ```
 
 ## Zurückrollen
 
-```nu
+```bash
 sudo bootc rollback
 sudo systemctl reboot
 ```

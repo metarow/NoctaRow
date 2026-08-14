@@ -3,20 +3,29 @@ titel: Noctarow-Basis-Image — atomic-brew als Ausgangspunkt
 aliases: [Basis-Image-Entwurf, atomic-brew-Merge]
 teil_von: "[[README]]"
 tags: [bootc, podman, homebrew, sway, noctalia, nushell, terra, containerfile, bash]
-zielgeraet: Lenovo Yoga 920-13IKB (x86_64), Dozenten-PC
+zielgeraet: Lenovo Yoga 920-13IKB (x86_64) — erste und aktuell einzige Plattform für das Basis-Image
 erstellt: 2026-08-02
-status: zielarchitektur — noch nicht gebaut
+status: aktiver Plan — Containerfile im Repo-Root noch nicht umgestellt
 ---
 
 # 15 — Noctarow-Basis-Image: atomic-brew + Noctarow-Konfiguration
 
-> [!important] Das ist die Zielarchitektur, nicht der aktuelle Stand
+> [!important] Aktiver Plan, Containerfile noch nicht umgestellt
 > Der `Containerfile` im Repo-Root macht aktuell noch reines `dnf install
 > noctalia-shell nushell helix` — die hier beschriebene Brew-Integration ist
-> **geplant, aber noch nicht umgesetzt**. Diese Note ersetzt den einfachen
-> dnf-Ansatz als nächsten Bauversuch, sobald die offenen Punkte unten geklärt
-> sind. Bis dahin bleibt das reale Containerfile die Wahrheit für das, was
-> tatsächlich läuft.
+> als **nächster Bauversuch bestätigt**, aber noch nicht umgesetzt. Bis zum
+> Umbau bleibt das reale Containerfile die Wahrheit für das, was tatsächlich
+> läuft.
+>
+> **Live-Stand auf dem Yoga** (verifiziert 2026-08-14): Login-Shell ist
+> bereits `bash`. Homebrew ist bereits bootstrapped
+> (`/home/linuxbrew/.linuxbrew/bin/brew` vorhanden, Eigentümer `fritz`), aber
+> `brew list` ist leer — `nushell`/`helix` stehen noch aus. Das System läuft
+> auf dem reinen Upstream-Basisimage
+> (`quay.io/fedora-ostree-desktops/sway-atomic:44`) mit `rpm-ostree`-Layern
+> `noctalia-shell` + `terra-release` — noch **kein** eigenes bootc-Image, noch
+> kein `bootc switch` durchgeführt. Genau der Zustand „Basis-Image mit
+> angepasster Konfiguration", den diese Note als Ausgangspunkt voraussetzt.
 
 > [!important] Neues Vorgehen — überschreibt alte Annahmen
 > 1. **nushell und helix kommen ausschließlich über Homebrew** nach

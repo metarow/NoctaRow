@@ -94,8 +94,7 @@ mkdir ($unit | path dirname)
 
 > [!tip] Das `home-path`/`home-dir`-Problem
 > 0.114 hat `$nu.home-path` in `home-dir` umbenannt; `nu-check` fängt das
-> nicht ab (siehe [[docs/14-xps13-wslg-sway-nushell-runde1]]). Die
-> Fallunterscheidung oben läuft auf beiden Versionen.
+> nicht ab. Die Fallunterscheidung oben läuft auf beiden Versionen.
 
 Exec-Zeile nach Installationsart — verlässliche Quelle ist Diagnose Nr. 2:
 

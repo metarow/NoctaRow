@@ -14,6 +14,19 @@ Das Yoga ist x86_64 **und** Zielhardware. Damit entfällt der Umweg über
 Disk-Images und VMs: gebautes Image pushen, `bootc switch`, rebooten. Der
 kürzeste Weg von der Änderung zur laufenden Maschine.
 
+> [!warning] Schritt 2–4 sind historisch überholt — nushell kommt jetzt über Brew
+> Diese Session (2026-07-16) hat `nushell`/`helix` noch per `rpm-ostree
+> install` gelayert und per `chsh` zur Login-Shell gemacht. Der aktuelle Plan
+> ist ein anderer: **bash bleibt Login-Shell**, `nushell`/`helix` kommen zur
+> Laufzeit über **Homebrew** (`/var/home/linuxbrew`) und werden nur dem
+> **Terminal** zugeordnet (Wrapper in `foot.ini`), siehe
+> [[docs/15-noctarow-basis-image]]. Schritt 2–4 bleiben unten als
+> Session-Protokoll stehen — nicht als Anleitung für den nächsten Durchlauf.
+> Auf dem Yoga selbst ist das inzwischen so: Login-Shell ist bash, Homebrew
+> ist bereits bootstrapped (`/home/linuxbrew/.linuxbrew/bin/brew` vorhanden),
+> aber noch **nichts** darüber installiert — `nushell`/`helix` per Brew und
+> die Terminal-Zuordnung stehen noch aus.
+
 > [!info] Dieses Dokument begleitet die Einrichtung
 > Es ist so geschrieben, dass du es auf dem Yoga öffnest und die Codeblöcke
 > der Reihe nach ausführst. Alle Dateien werden über Nushell-Raw-Strings
@@ -248,13 +261,9 @@ which bootc
 > Deshalb `--format '{{.Store.GraphRoot}}'` (Go-Template) statt `| from json`.
 > Für Nushell-Weiterverarbeitung: `sudo podman info --format json | from json`.
 
-Erwartungsbild gegenüber der WSL-Umgebung ([[docs/02-umgebung-wsl]]):
-
-| Prüfung | WSL (XPS) | Yoga |
-|---|---|---|
-| Mount-Propagation | `shared` (nach wsl.conf-Fix) | `shared` (Standard) |
-| `/dev/dri` | fehlt | **vorhanden** |
-| SELinux | keiner | **enforcing** |
+> [!note] SELinux ist auf dem Yoga scharf gestellt
+> Anders als in früher genutzten Wegwerf-Testumgebungen läuft SELinux hier
+> **enforcing**. Bind-Mounts brauchen ein Label (`:Z`), siehe Schritt 6.
 
 ### D — Trockenlauf
 
@@ -308,11 +317,11 @@ rpm-ostree status | lines | first 12
 > keine Login-Shell. Ebenfalls beim ersten Boot prüfen: ob die per `chsh`
 > gesetzte Login-Shell in `/etc/passwd` den Switch überlebt.
 
-## Schritt 3 — Nushell als Login-Shell
+## Schritt 3 — Nushell als Login-Shell (historisch, siehe Warnung oben)
 
-Gleicher Mechanismus wie in [[docs/02-umgebung-wsl#Nushell als Login-Shell]]
-(`chsh` fehlt, kommt aus `util-linux-user`) — hier ohne WSL-typischen
-passwortlosen sudo, sonst identisch.
+`chsh` fehlt auch hier (Paket `util-linux-user`). **Überholt:** Der aktuelle
+Plan macht nushell nicht mehr zur Login-Shell, siehe die Warnung am
+Dokumentenanfang und [[docs/15-noctarow-basis-image]].
 
 ```nu
 sudo rpm-ostree install --apply-live util-linux-user
@@ -408,8 +417,7 @@ $env.config.show_banner = false
 > `use scripts/helpers.nu *` geladen.
 
 > [!tip] `$nu.default-config-dir` statt `~/.config/nushell`
-> Plattformneutral — auf Windows liegt die Konfiguration unter
-> `%APPDATA%\nushell`. Siehe [[docs/02-umgebung-wsl]].
+> Plattformneutral statt hartkodiertem Pfad.
 
 Kontrolle, dass der Bestand erhalten und die Datei syntaktisch heil ist:
 

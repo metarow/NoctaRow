@@ -37,10 +37,10 @@ podman login quay.io
 Podman fragt interaktiv nach Benutzer und Token und legt die Credentials unter
 `$XDG_RUNTIME_DIR/containers/auth.json` ab.
 
-> [!tip] In WSL überlebt das den Neustart nicht
-> `$XDG_RUNTIME_DIR` wird bei jedem WSL-Start neu angelegt. Für dauerhaftes
-> Login: `podman login --authfile ~/.config/containers/auth.json quay.io` und
-> dann `$env.REGISTRY_AUTH_FILE = "~/.config/containers/auth.json"` in
+> [!tip] `$XDG_RUNTIME_DIR` überlebt keinen Neustart
+> Es wird bei jedem Boot neu angelegt. Für dauerhaftes Login:
+> `podman login --authfile ~/.config/containers/auth.json quay.io` und dann
+> `$env.REGISTRY_AUTH_FILE = "~/.config/containers/auth.json"` in
 > `~/.config/nushell/env.nu`.
 
 ## Tag-Strategie
@@ -57,20 +57,11 @@ Podman fragt interaktiv nach Benutzer und Token und legt die Credentials unter
 > ist ein Rechner, der mitten im Kurs kaputtgeht. Die Flotte zeigt auf
 > `stable`, und du verschiebst `stable` bewusst, nach dem Test.
 
-## Multi-Arch: der Ablauf
+## Multi-Arch: aktuell zurückgestellt
 
-Weil weder XPS noch CachyOS-Desktop beide Architekturen nativ bauen können,
-wird arch-getrennt gebaut und gepusht, danach die Manifest-List erzeugt.
-
-**Auf dem XPS (aarch64), Nushell:**
-
-```nu
-use scripts/noctarow.nu *
-noctarow build --tag 44
-noctarow push  --tag 44          # → quay.io/metarow/noctarow:44-arm64
-```
-
-**Auf dem CachyOS-Desktop (x86_64):**
+Der Yoga ist die einzige aktive Build- und Zielmaschine (x86_64). Es gibt
+derzeit **keine** lokale aarch64-Build-Maschine im Projekt — eine Manifest-List
+mit `arm64` ist damit vertagt, bis eine solche Plattform wieder ansteht.
 
 ```nu
 use scripts/noctarow.nu *
@@ -78,7 +69,11 @@ noctarow build --tag 44
 noctarow push  --tag 44          # → quay.io/metarow/noctarow:44-amd64
 ```
 
-**Danach, auf einer der beiden Maschinen:**
+Braucht es später doch `arm64`, ist der native GitHub-Actions-Runner der
+richtige Weg (kein manueller Zweitrechner nötig) — siehe
+[„Alternative: nativ bauen ohne zweite Maschine"](#alternative-nativ-bauen-ohne-zweite-maschine)
+und [[docs/10-github-repository#Schritt 5 — Was `ubuntu-24.04-arm` bedeutet]].
+Erst dann wird eine Manifest-List gebaut:
 
 ```nu
 noctarow manifest --tag 44       # → quay.io/metarow/noctarow:44
@@ -106,10 +101,10 @@ skopeo copy $"docker://quay.io/metarow/noctarow:44.($heute)" docker://quay.io/me
 
 ## Alternative: nativ bauen ohne zweite Maschine
 
-Wenn dich das Hin und Her stört, bauen GitHub Actions inzwischen kostenlos auf
+Für ein künftiges `arm64`-Ziel: GitHub Actions baut inzwischen kostenlos auf
 **arm64-Runnern für öffentliche Repositories**. Ein Workflow mit einer
 `matrix` über `ubuntu-24.04` und `ubuntu-24.04-arm` erzeugt beide Images und
-die Manifest-List in einem Lauf.
+die Manifest-List in einem Lauf — ganz ohne lokale Zweitmaschine.
 
 Was du dafür brauchst: den Robot-Token als Repository-Secret. Was du dafür
 bekommst: reproduzierbare Builds ohne Zustand aus deiner Werkstatt.

@@ -33,8 +33,8 @@ wie `quickshell`, **nicht gleichzeitig** installierbar). Das offizielle Paket
 `noctalia-shell` liegt in **Terra** und zieht `noctalia-qs` + Deps. Terra baut
 für x86_64 **und** aarch64.
 
-> [!important] Korrektur an [[docs/01-erkenntnisse#Umgebungsbefunde WSL]]
-> Dort steht `quickshell` sei „in offiziellen Fedora-Repos". Das stimmt für
+> [!important] Korrektur an einer früheren Annahme
+> `quickshell` liegt „in offiziellen Fedora-Repos". Das stimmt für
 > Quickshell allgemein — aber **für Noctalia v4 nicht nutzbar**, weil der Fork
 > gebraucht wird und mit dem Fedora-Paket kollidiert. Für Noctarow: `noctalia-qs`
 > via Terra, **kein** `quickshell` installieren.

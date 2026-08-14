@@ -4,10 +4,10 @@ projekt: Noctarow
 firma: MetaRow Software UG
 basis: quay.io/fedora-ostree-desktops/sway-atomic:44
 registry: quay.io/metarow/noctarow
-architekturen: [x86_64, aarch64]
+architekturen: [x86_64]
 status: in Entwicklung
 erstellt: 2026-07-09
-tags: [bootc, fedora, sway, noctalia, quickshell, wsl, nushell]
+tags: [bootc, fedora, sway, noctalia, quickshell, nushell, homebrew]
 ---
 
 # Noctarow
@@ -22,19 +22,17 @@ HiDPI-Unterstützung. Gebaut für die Schulungsflotte der MetaRow Software UG.
 ## Dokumentation
 
 - [[docs/01-erkenntnisse|01 — Erkenntnisse: Wie Fedora Sway konfiguriert wird]]
-- [[docs/02-umgebung-wsl|02 — Arbeitsumgebung: Fedora WSL, Nushell, Helix]]
 - [[docs/03-bauen-und-testen|03 — Image bauen und nested testen]]
 - [[docs/04-quay-veroeffentlichung|04 — Veröffentlichung auf quay.io]]
 - [[docs/05-hidpi-und-monitore|05 — HiDPI, Skalierung, Beamer]]
 - [[docs/06-lenovo-yoga-deployment|06 — Deployment auf dem Lenovo Yoga 920]]
 - [[docs/07-referenz-quellen|07 — Quellen und Upstream-Repos]]
-- [[docs/08-verteilung|08 — Verteilung: was liegt auf Windows, was in WSL]]
 - [[docs/09-yoga-buildumgebung|09 — Yoga-Buildumgebung: Setup-Log]]
 - [[docs/10-github-repository|10 — GitHub-Repository und CI]]
 - [[docs/12-noctalia-layering-explorationsweg|12 — Noctalia per rpm-ostree-Layering (Explorationsweg)]]
 - [[docs/13-leitfaden-atomic-brew-homebrew|13 — Leitfaden: bootc-Image mit Homebrew (Vorarbeit)]]
 - [[docs/14-troubleshooting-atomic-brew|14 — Troubleshooting-Log: atomic-brew]]
-- [[docs/15-noctarow-basis-image|15 — Zielarchitektur: Basis-Image mit Brew-Integration (geplant)]]
+- [[docs/15-noctarow-basis-image|15 — Zielarchitektur: Basis-Image mit Brew-Integration (aktiver Plan)]]
 - [[docs/16-erkenntnisse-noctalia-container|16 — Erkenntnisse: Noctalia, Container, Nushell]]
 - [[docs/18-autostart-nextcloud-sway|18 — Autostart: Nextcloud unter Sway]]
 - [[docs/19-flatpak-auf-sway-atomic|19 — Flatpak auf Sway Atomic]]
@@ -61,38 +59,34 @@ noctarow/
 ├── sddm/                      # Display-Manager: Tastatur + HiDPI
 ├── tmpfiles/                  # First-Boot-Auslieferung der User-Config
 ├── hosts/                     # maschinenspezifisch → /etc/sway/config.d/
-│   ├── yoga920/
-│   └── xps13/
+│   └── yoga920/
 ├── scripts/
-│   ├── noctarow.nu            # Build/Test/Disk/Push  → WSL (ext4!)
-│   ├── noctarow-win.nu        # WSL- + Hyper-V-Steuerung → Windows
-│   └── bootstrap-noctarow.nu  # einmalige Einrichtung, auf Windows
+│   └── noctarow.nu            # Build/Test/Push, nativ auf dem Yoga
 └── docs/
 ```
 
 ## Einrichtung
 
-Einmalig, in Nushell **auf Windows**, im Download-Ordner:
+Der Yoga ist Build- **und** Zielmaschine — kein Windows-/WSL-Umweg. Login-Shell
+ist bash; `git clone` direkt auf dem Yoga:
 
-```nu
-nu bootstrap-noctarow.nu --distro FedoraLinux-44 --user fritz
+```bash
+git clone https://github.com/metarow/noctarow.git ~/projekte/noctarow
+cd ~/projekte/noctarow
 ```
 
-Das Skript entpackt das Archiv nach `~/projekte/noctarow` in der WSL-Distro,
-prüft das Dateisystem, legt einen initialen Git-Commit an und kopiert
-`noctarow-win.nu` in dein Windows-Nushell-Verzeichnis.
-
-Details: [[docs/08-verteilung]]
+Details zum Buildumgebungs-Setup: [[docs/09-yoga-buildumgebung]]
 
 ## Schnellstart
 
-In der Fedora-WSL-Distro, Nushell:
+Nushell steht als Terminal-Default zur Verfügung (Homebrew-Installation,
+siehe [[docs/15-noctarow-basis-image]]) — Build-Kommandos laufen darin:
 
 ```nu
 use scripts/noctarow.nu *
 
 noctarow build
-noctarow test-nested        # Sway + Noctalia als Fenster auf dem Windows-Desktop
+noctarow test-nested        # Sway + Noctalia in einem nested Fenster, hardwarebeschleunigt
 noctarow keyboard-check     # prüft das aktive XKB-Layout
 ```
 

@@ -11,10 +11,11 @@ beide Architekturen baut und nach `quay.io/metarow/noctarow` schiebt.
 
 Der Gewinn ist nicht Öffentlichkeit als Selbstzweck. Es ist:
 
-- **Ein `git pull` statt Tarball-Herumtragen** zwischen XPS, Yoga und
-  CachyOS-Desktop.
+- **Ein `git pull` statt Tarball-Herumtragen**, sobald mehr als eine Maschine
+  am Projekt arbeitet.
 - **Kostenlose arm64-Runner.** GitHub stellt sie für öffentliche Repositories
-  bereit. Damit entfällt die Notwendigkeit, auf dem XPS von Hand zu bauen.
+  bereit — falls je eine aarch64-Zielplattform dazukommt, ohne dass dafür
+  lokal eine zweite Build-Maschine nötig wäre.
 - **Reproduzierbare Builds** ohne Zustand aus deiner Werkstatt.
 
 ## Schritt 1 — Repository anlegen
@@ -213,8 +214,8 @@ jobs:
 ## Schritt 5 — Was `ubuntu-24.04-arm` bedeutet
 
 Der arm64-Runner ist ein **nativer** ARM-Host, keine Emulation. Damit baut die
-CI dein aarch64-Image in derselben Zeit wie das amd64. Die Notwendigkeit,
-auf dem XPS von Hand zu bauen, entfällt.
+CI ein aarch64-Image in derselben Zeit wie das amd64 — ganz ohne lokale
+aarch64-Build-Maschine, sollte das je gebraucht werden.
 
 > [!warning] Nur für öffentliche Repositories kostenlos
 > Wird das Repository privat, kostet der arm64-Runner Minuten aus dem
@@ -251,7 +252,7 @@ sudo bootc upgrade
 systemctl reboot
 ```
 
-Und auf dem XPS oder dem CachyOS-Desktop:
+Und auf jeder weiteren Maschine, die am Projekt mitarbeitet:
 
 ```nu
 git pull

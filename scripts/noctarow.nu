@@ -1,6 +1,8 @@
 # Noctarow — Build-, Test- und Publish-Modul
-# Nushell. Laeuft in der Fedora-WSL-Distro (XPS) UND nativ auf Fedora
-# Sway Atomic (Yoga). Umgebungsabhaengiges wird zur Laufzeit erkannt.
+# Nushell, nativ auf Fedora Sway Atomic (Yoga) -- die alleinige Build- und
+# Zielplattform. Die WSL-Erkennung (ist-wsl) ist historisch: der XPS war
+# frueher Build-/Testmaschine, ist es nicht mehr, hat aber ein eigenes
+# lauffaehiges Setup. Zweigt zur Laufzeit korrekt auf "nativ" ab.
 #
 #   use scripts/noctarow.nu *
 #   noctarow doctor

@@ -126,7 +126,7 @@ Alle grün → Switch, Reboot, `swaymsg -t get_outputs` → dritter Monitor.
 > 1. **Nur der Dozenten-PC** hat den DisplayLink-Adapter – die Yoga (4K-Laptop) braucht ihn nicht.
 > 2. Die evdi-Stage **darf nicht gecacht werden** (Kernel-Drift) → baut bei jedem Base-Update komplett neu → dauerhafte CI-Steuer.
 > 3. **Fehlerisolation** – Noctalia (reine Repo-Pakete) und evdi (Kernel-gekoppelt, Drittanbieter) getrennt einführen.
-> 4. **aarch64-Killer:** Ob `crashdummy/Displaylink` für arm64 baut, ist offen. Im gemeinsamen Basis-Containerfile würde ein fehlender arm64-Build den **ganzen XPS-CI-Zweig blockieren**.
+> 4. **aarch64-Killer:** Ob `crashdummy/Displaylink` für arm64 baut, ist offen. Im gemeinsamen Basis-Containerfile würde ein fehlender arm64-Build einen **künftigen aarch64-Zweig blockieren**, sollte je eine solche Plattform dazukommen (siehe [[docs/04-quay-veroeffentlichung#Multi-Arch: aktuell zurückgestellt]]).
 >
 > → eigenes `noctarow-displaylink:latest` (x86_64-only), das `FROM noctarow:latest` ableitet und nur der Dozenten-PC zieht. Passt zur bestehenden `hosts/`-Trennung. Reihenfolge im Projekt: **erst Noctalia ins Basis-Image, dann diese abgeleitete Variante.**
 

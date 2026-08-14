@@ -206,29 +206,6 @@ im Login-Screen kommt aus `/etc/vconsole.conf` und der SDDM-Greeter-Umgebung.
 
 Behandelt in [[docs/05-hidpi-und-monitore]].
 
-## Umgebungsbefunde WSL (Dell XPS 13 9345, aarch64)
-
-| Prüfung | Ergebnis |
-|---|---|
-| `podman info` cgroups | v2, systemd-Manager, rootless ✅ |
-| cgroup-Controller | `cpu memory pids` ✅ |
-| Mount-Propagation `/` | `shared` (nach `wsl.conf`-Fix) ✅ |
-| `quickshell` aarch64 | in **offiziellen Fedora-Repos**, kein COPR ✅ |
-| `matugen`, `cliphist` aarch64 | ebenfalls offiziell ✅ |
-| `nushell`, `helix` aarch64 | ebenfalls offiziell ✅ |
-| Basis-Image `:44` | Manifest-List mit `amd64` + `arm64` ✅ |
-| `/dev/dri` | **fehlt** ❌ |
-| `/dev/dxg` | vorhanden |
-| WSLg Wayland-Socket | `/mnt/wslg/runtime-dir/wayland-0` ✅ |
-
-> [!caution] Kein Render-Node in Fedora-WSL
-> Fedoras Mesa bringt den `d3d12`-Gallium-Treiber nicht mit, deshalb entsteht
-> aus `/dev/dxg` kein `/dev/dri/renderD128`. Nested Sway läuft zwingend mit
-> `WLR_RENDERER=pixman` (Software-Rendering).
->
-> Für Keyboard- und Layout-Tests völlig ausreichend. **Keine
-> Performance-Schlüsse ziehen** — Noctalias Animationen werden ruckeln.
-
 ## Was der nested Container *nicht* testen kann
 
 - `10-systemd-session.conf` läuft ins Leere → Fehlermeldungen zu
@@ -238,9 +215,10 @@ Behandelt in [[docs/05-hidpi-und-monitore]].
 - das `/etc`-3-Wege-Merge-Verhalten über zwei Image-Generationen
 - SDDM, First-Boot-tmpfiles ins `$HOME`
 
-Dafür gibt es die VM. Siehe [[docs/03-bauen-und-testen#Stufe 3 — Hyper-V]].
+Dafür bleibt nur der echte `bootc switch` auf dem Yoga selbst, siehe
+[[docs/06-lenovo-yoga-deployment]] — eine separate VM-Teststufe entfällt, da
+Build- und Zielmaschine identisch sind.
 
 > [!note] Offene Punkte, nicht vergessen
-> 
-> - **Doku-Drift:** Der Build macht `COPY sway/environment.noctarow /tmp/…` + `cat >> /etc/sway/environment`. `09-yoga-buildumgebung` dokumentiert `COPY … /usr/share/sway/environment`. Zwei verschiedene Dateien, zwei verschiedene Mechanismen — separat zu klären, welcher gilt.
+>
 > - **Lint-Warnungen:** `nonempty-run-tmp` (`/run/dnf`) und `var-log` (`/var/log/dnf5.log`) überleben dein `rm -rf`. Kosmetisch, aber `rm -rf /run/dnf /var/log/dnf5.log /var/lib/dnf` im selben RUN räumt sie weg.

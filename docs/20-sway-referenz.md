@@ -355,9 +355,9 @@ Drei Einsteiger-Fallen aus `sway-config-fedora` überschreiben
 
 ### Renderer
 
-Sway/wlroots kann über `WLR_RENDERER=pixman` **rein auf der CPU** rendern —
-im Projekt bereits unter WSLg und Hyper-V im Einsatz (siehe
-[[14-xps13-wslg-sway-nushell-runde1]], [[03-bauen-und-testen]]).
+Sway/wlroots kann über `WLR_RENDERER=pixman` **rein auf der CPU** rendern.
+Auf dem Yoga nicht mehr nötig — der nested Test läuft dort hardwarebeschleunigt
+gegen die reale GPU, siehe [[docs/03-bauen-und-testen]].
 
 Sway 1.12 verweigert den Start auf „nicht unterstützten" GPUs nicht mehr,
 sondern gibt nur noch einen Hinweis aus.

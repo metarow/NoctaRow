@@ -6,15 +6,18 @@ tags:
   - hyprland-setup
 erstellt: 2026-06-28
 status: aktiv
-kontext: Hyprland-Vorläufer — generischer Fedora-Spickzettel, für Noctarow/WSL gilt stattdessen docs/02-umgebung-wsl.md
+kontext: Hyprland-Vorläufer — generischer Fedora-Spickzettel, für Noctarow gilt stattdessen die Brew-Installation aus docs/15-noctarow-basis-image.md
 ---
 
 > [!warning] Kontext: Hyprland-Vorläufer
 > Entstanden vor der Sway-Entscheidung für Noctarow, als generischer
 > Installations-Spickzettel für Fedora + Nushell (drei alternative Wege:
-> Fedora-Repo/COPR/Gemfury). Für den Noctarow-WSL-Weg gilt stattdessen
-> [[docs/02-umgebung-wsl]]. Die Methoden hier bleiben technisch korrekt und
-> nützlich für andere Fedora-Systeme.
+> Fedora-Repo/COPR/Gemfury — alle drei sind hier `dnf`/COPR-basiert). Für
+> Noctarow gilt stattdessen die Brew-Installation aus
+> [[docs/15-noctarow-basis-image]]: nushell kommt nicht per `dnf`, sondern
+> zur Laufzeit über Homebrew, und wird nur dem Terminal zugeordnet, nicht der
+> Login-Shell. Die Methoden hier bleiben technisch korrekt und nützlich für
+> andere Fedora-Systeme.
 
 # Nushell installieren
 

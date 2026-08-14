@@ -132,9 +132,17 @@ Auth-Agent durchläuft.
 ### 4.1 Launcher-Eintrag fehlt unter Nushell 🟡
 
 `/etc/profile.d/flatpak.sh` hängt `~/.local/share/flatpak/exports/share` an
-`XDG_DATA_DIRS` an — Nushell sourced das nicht (bekanntes Muster aus der
-WSLg-Runde, siehe Notiz 15). Aus einer Nushell-Login-Shell gestartet, taucht
-Bazaar in keinem Menü auf; `flatpak run` geht trotzdem. Prüfen:
+`XDG_DATA_DIRS` an — Nushell sourced das nicht. Aus einer Nushell-Login-Shell
+gestartet, taucht Bazaar in keinem Menü auf; `flatpak run` geht trotzdem.
+
+> [!note] Aktueller Plan macht das voraussichtlich gegenstandslos
+> Nushell ist im aktuellen Plan ([[docs/15-noctarow-basis-image]]) nicht mehr
+> Login-Shell, sondern nur dem Terminal zugeordnet — `bash` bleibt Login-Shell
+> und sourct `/etc/profile.d/flatpak.sh` normal, `XDG_DATA_DIRS` sollte damit
+> schon vor dem ersten `nu`-Start korrekt gesetzt sein. **Nicht verifiziert**
+> — vor dem nächsten Flatpak-Test gegenprüfen.
+
+Prüfen:
 
 ```nu
 $env.XDG_DATA_DIRS | split row ':' | find flatpak
@@ -209,7 +217,5 @@ Yoga-Setup — er ist nicht Teil des reproduzierbaren Images.
 
 ## Verwandte Notizen
 
-- [[01-erkenntnisse]] — warum `rpm-ostree install` den bootc-Pfad bricht
-- [[02-umgebung-wsl]] — Nushell-Umgebung, `env.nu`
-- [[08-verteilung]] — was auf Windows, was in WSL liegt
-- Notiz 15 — Flatpak/Nushell-`XDG_DATA_DIRS`-Muster (WSLg)
+- [[docs/01-erkenntnisse]] — warum `rpm-ostree install` den bootc-Pfad bricht
+- [[docs/15-noctarow-basis-image]] — Terminal-Wrapper, Nushell nicht mehr Login-Shell

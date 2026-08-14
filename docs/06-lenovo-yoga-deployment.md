@@ -7,8 +7,8 @@ zielgeraet: Lenovo Yoga 920-13IKB (x86_64)
 
 # 06 — Deployment auf dem Lenovo Yoga 920
 
-Das Yoga ist die erste echte Hardware. x86_64, unproblematisch — im Gegensatz
-zum XPS, siehe [[docs/02-umgebung-wsl#Warum kein KVM auf diesem Gerät]].
+Das Yoga ist die erste Plattform für das Basis-Image: x86_64, native Build-
+und Zielhardware in einem, kein Cross-Build, keine VM dazwischen.
 
 ## Voraussetzung
 
@@ -99,13 +99,14 @@ Prüfen, was in `/etc` lokal abweicht:
 sudo ostree admin config-diff | lines | parse "{status} {pfad}"
 ```
 
-> [!warning] Der Merge-Test gehört in die VM, nicht auf die Hardware
-> Bevor du ein Update auf das Yoga lässt, spiel den Ablauf einmal in der
-> Hyper-V-VM durch: Image v1 booten, `/etc/sway/config.d/50-keyboard.conf`
-> anlegen, Image v2 mit geändertem `/usr`-Default bauen und pushen,
-> `bootc upgrade`, rebooten, prüfen ob die lokale Datei überlebt hat.
+> [!warning] Den Merge-Test einmal bewusst durchspielen
+> Vor einem Update, das `/usr`-Defaults ändert: Image v1 booten,
+> `/etc/sway/config.d/50-keyboard.conf` anlegen, Image v2 mit geändertem
+> `/usr`-Default bauen, `bootc upgrade`, rebooten, prüfen ob die lokale Datei
+> überlebt hat. `bootc rollback` ist das Sicherheitsnetz, falls nicht — siehe
+> [Rollback](#rollback) oben.
 >
-> Siehe [[docs/03-bauen-und-testen#Stufe 3 — Hyper-V]].
+> Siehe auch [[docs/03-bauen-und-testen#Was ein nested Test nicht abdeckt]].
 
 ## Erstinbetriebnahme — Prüfliste
 
@@ -135,7 +136,6 @@ journalctl --user -u kanshi -n 20
 | Yoga 920 | x86_64 | `stable` | `hosts/yoga920` |
 | Schulungs-PCs Intel/AMD | x86_64 | `stable` | noch anzulegen |
 | Schulungs-PCs NVIDIA | x86_64 | `stable-nvidia` | eigener Build |
-| XPS 13 9345 | aarch64 | — | kein Deployment |
 
 Die NVIDIA-Variante braucht ein eigenes Containerfile mit
 `akmod-nvidia`/`nvidia-driver` aus RPM Fusion — ein `FROM
