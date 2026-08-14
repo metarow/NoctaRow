@@ -324,4 +324,11 @@ export def "noctarow apply-host" [host: string] {
         cp $kanshi ~/.config/kanshi/config
         print $"($kanshi) → ~/.config/kanshi/config"
     }
+
+    let noctalia = $"($dir)/noctalia-settings.json"
+    if ($noctalia | path exists) {
+        mkdir ~/.config/noctalia
+        cp $noctalia ~/.config/noctalia/settings.json
+        print $"($noctalia) → ~/.config/noctalia/settings.json"
+    }
 }
