@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+# Terminal-Shell-Zuordnung: nushell aus brew, Fallback bash.
+NU=/var/home/linuxbrew/.linuxbrew/bin/nu
+if [ -x "$NU" ]; then
+    exec "$NU" "$@"
+fi
+exec /usr/bin/bash "$@"

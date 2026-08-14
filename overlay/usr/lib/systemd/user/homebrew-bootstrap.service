@@ -1,0 +1,10 @@
+[Unit]
+Description=Homebrew Erstinstallation nach /var/home/linuxbrew
+ConditionPathExists=!/var/home/linuxbrew/.linuxbrew/bin/brew
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/noctarow/homebrew-bootstrap.sh
+
+[Install]
+WantedBy=default.target
