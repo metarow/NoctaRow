@@ -196,6 +196,20 @@ Ebenfalls nicht vorhanden: `/usr/share/sway/config` — Hauptconfig ist
 > Dokumentations-Genauigkeitspunkt, kein Funktionsrisiko. Gleiches gilt für
 > `90-swayidle.conf`.
 
+### Verwaister `nmcli monitor` hält abgemeldete Session offen
+
+Nach einem Sway-Logout (Session 2 → 6, 2026-08-14) blieb `session-2.scope` im
+Zustand `active (abandoned)` haengen, obwohl der Sway-Leader-Prozess bereits
+tot war. Ursache: `/usr/bin/nmcli -t monitor` (PPID → 1, verwaist) lief in der
+Cgroup weiter und hielt sie dadurch nicht leer. `loginctl terminate-session`
+raeumte die Session deswegen nicht auf; erst `kill` auf die Waisen-PID leerte
+die Cgroup, danach hat systemd/logind Scope und Session sofort entfernt.
+
+> [!note] Einmalig beobachtet, kein bestaetigtes Muster
+> Nur ein Vorkommen, noch nicht reproduziert. Falls es wiederkehrt: pruefen,
+> was `nmcli monitor` startet (vermutlich ein Statusleisten-Widget) und ob es
+> bei `Compositor Logout requested` sauber beendet wird.
+
 ## bootc / rpm-ostree / podman
 
 ### Qt 6.11: nur beim Layering ein Problem
