@@ -5,27 +5,51 @@ teil_von: "[[README]]"
 tags: [bootc, podman, homebrew, sway, noctalia, nushell, terra, containerfile, bash]
 zielgeraet: Lenovo Yoga 920-13IKB (x86_64) — erste und aktuell einzige Plattform für das Basis-Image
 erstellt: 2026-08-02
-status: aktiver Plan — Containerfile im Repo-Root noch nicht umgestellt
+status: umgesetzt, sudo-Build erfolgreich — bootc switch steht noch aus
 ---
 
 # 15 — Noctarow-Basis-Image: atomic-brew + Noctarow-Konfiguration
 
-> [!important] Aktiver Plan, Containerfile noch nicht umgestellt
-> Der `Containerfile` im Repo-Root macht aktuell noch reines `dnf install
-> noctalia-shell nushell helix` — die hier beschriebene Brew-Integration ist
-> als **nächster Bauversuch bestätigt**, aber noch nicht umgesetzt. Bis zum
-> Umbau bleibt das reale Containerfile die Wahrheit für das, was tatsächlich
-> läuft.
+> [!success] Containerfile umgestellt und rootless verifiziert (2026-08-14)
+> Repo-Root-`Containerfile` und `overlay/`-Baum entsprechen jetzt exakt dieser
+> Note. Rootless auf dem Yoga gebaut (`podman build`, kein `sudo`) und
+> gegengeprüft:
+> - `rpm -q noctalia-shell` → installiert
+> - `rpm -q nushell helix` im Image → **beide nicht installiert** (korrekt,
+>   kommen per Brew)
+> - Overlay-Skripte ausführbar, `foot.ini` zeigt auf den Terminal-Wrapper,
+>   `font=size:14` (echter Yoga-Wert) blieb erhalten
+> - `/etc/sway/environment`: Fedora-Bestand (`_JAVA_AWT_WM_NONREPARENTING=1`)
+>   erhalten, `environment.noctarow`-Inhalt korrekt angehängt
+> - `vconsole.conf.noctarow` liegt jetzt an `/usr/lib/vconsole.conf.noctarow`
+>   — **Platzierungsfehler behoben**: die alte `COPY sddm/ →
+>   /usr/lib/sddm/sddm.conf.d/` hätte `vconsole.conf` fälschlich in
+>   `sddm.conf.d/` gelegt statt an den von `tmpfiles/noctarow.conf`
+>   erwarteten Pfad. Nie gegen einen echten Build verifiziert gewesen (siehe
+>   [[docs/16-erkenntnisse-noctalia-container#Offene Punkte (nur nach dem Switch messbar)]]).
+> - `systemctl --global is-enabled homebrew-bootstrap.service` → `enabled`
+> - `bootc container lint`: 10 Checks bestanden, nur die 3 bekannten
+>   kosmetischen Warnungen (`nonempty-run-tmp`, `var-log`, `var-tmpfiles`)
 >
-> **Live-Stand auf dem Yoga** (verifiziert 2026-08-14): Login-Shell ist
-> bereits `bash`. Homebrew ist bereits bootstrapped
+> Außerdem verifiziert: `brew install --dry-run nushell helix` auf diesem
+> x86_64-Yoga liefert **Bottles**, kein Quellbau nötig — löst den ersten
+> offenen Punkt unten auf.
+
+> [!success] Echter `sudo podman build` erfolgreich (2026-08-14)
+> `sudo podman build -t quay.io/metarow/noctarow:44-amd64 .` lief auf dem
+> Yoga vollständig durch (alle 11 Schritte, `LABEL` gesetzt), Image liegt als
+> `quay.io/metarow/noctarow:44-amd64` in root's `containers-storage` — genau
+> die Voraussetzung für `bootc switch --transport containers-storage`.
+> **Noch offen:** der tatsächliche `bootc switch` + Reboot +
+> Erstlogin-Kontrolle. Das ist der Schritt, der das laufende System
+> tatsächlich umschaltet — bewusst nicht ungefragt ausgeführt.
+
+> [!important] Live-Stand auf dem Yoga zum Zeitpunkt des Umbaus
+> Login-Shell war bereits `bash`. Homebrew war bereits bootstrapped
 > (`/home/linuxbrew/.linuxbrew/bin/brew` vorhanden, Eigentümer `fritz`), aber
-> `brew list` ist leer — `nushell`/`helix` stehen noch aus. Das System läuft
-> auf dem reinen Upstream-Basisimage
-> (`quay.io/fedora-ostree-desktops/sway-atomic:44`) mit `rpm-ostree`-Layern
-> `noctalia-shell` + `terra-release` — noch **kein** eigenes bootc-Image, noch
-> kein `bootc switch` durchgeführt. Genau der Zustand „Basis-Image mit
-> angepasster Konfiguration", den diese Note als Ausgangspunkt voraussetzt.
+> `brew list` war leer. Das System lief auf dem reinen Upstream-Basisimage
+> mit `rpm-ostree`-Layern `noctalia-shell` + `terra-release` — noch kein
+> eigenes bootc-Image aktiv, noch kein `bootc switch` durchgeführt.
 
 > [!important] Neues Vorgehen — überschreibt alte Annahmen
 > 1. **nushell und helix kommen ausschließlich über Homebrew** nach
@@ -377,18 +401,22 @@ getent passwd "$USER" | cut -d: -f7    # -> /bin/bash
 
 ## Offene Punkte
 
-- [ ] `brew install --dry-run nushell helix` auf x86_64: Bottles vorhanden
-      oder Quelltext-Bau? (Auf aarch64 laut 13 noch offen — hier für das
-      Yoga separat prüfen)
+- [x] `brew install --dry-run nushell helix` auf x86_64: **Bottles
+      vorhanden**, kein Quelltext-Bau nötig (verifiziert 2026-08-14, direkt
+      auf dem Yoga)
+- [x] Containerfile + Overlay-Struktur umgesetzt und rootless gebaut/verifiziert
+      (2026-08-14)
+- [x] Echter `sudo podman build` (root-Storage) — erfolgreich (2026-08-14)
+- [ ] `bootc switch --transport containers-storage` + Reboot
+- [ ] Erstlogin-Kontrolle nach dem Switch (siehe Abschnitt oben) — insbesondere
+      der Homebrew-Bootstrap-Lauf selbst, nicht nur der rootless Image-Inhalt
 - [ ] Erstlogin-Fenster live testen: foot **vor** abgeschlossenem
       Bootstrap öffnen → Wrapper muss sauber in bash landen
 - [ ] `90-bar.conf`-Dateinamen gegen aktuelle `sway-config-fedora`
-      verifizieren (waybar-exec-Snippet)
+      verifizieren (waybar-exec-Snippet) — ungeklärt, siehe
+      [[docs/16-erkenntnisse-noctalia-container#Die Statuszeile: swaybar oder waybar — noch offen]]
 - [ ] Toolchain-Größe messen (`@development-tools` ist schwer) — Kandidat
       fürs Abspecken, falls die 15-GB-`/var`-Grenze auf dem Yoga drückt
-- [ ] `09-yoga-buildumgebung` nachziehen: nushell/helix aus dem
-      Containerfile streichen, `environment`-Drift, Overlay-Struktur,
-      bash-Befehle in der Buildumgebung
 - [ ] Rollen-Matrix bestätigen: `10-core` (Toolchain + Bootstrap inkl.
       nushell/helix) in allen Rollen — deckt sich wieder mit dem
       atomic-brew-Original

@@ -6,14 +6,15 @@ Primäre Zielhardware: Lenovo Yoga 920-13IKB (x86_64, 4K, Intel UHD 620)
 
 Betreiber: MetaRow Software UG
 
-> [!info] Zielarchitektur vs. aktueller Stand
-> Dieses `Containerfile` installiert aktuell `noctalia-shell`, `nushell` und
-> `helix` alle per `dnf`. Aktiver Plan ist eine Brew-Integration:
-> `nushell`/`helix` künftig zur Laufzeit über Homebrew (`/var/home/linuxbrew`)
-> statt im Image, Login-Shell bleibt `bash`, `nushell` wird nur dem Terminal
-> zugeordnet. Details in `docs/15-noctarow-basis-image.md`. Bis diese
-> Umstellung gebaut und verifiziert ist, gilt das hier beschriebene
-> reine-dnf-Vorgehen.
+> [!info] Brew-Integration umgesetzt, noch nicht per `bootc switch` aktiviert
+> `noctalia-shell` kommt per `dnf`; `nushell`/`helix` kommen **nicht** mehr ins
+> Image, sondern zur Laufzeit über Homebrew (`/var/home/linuxbrew`) —
+> Login-Shell bleibt `bash`, `nushell` wird nur dem Terminal (foot) zugeordnet.
+> Details in `docs/15-noctarow-basis-image.md`. Auf dem Yoga gebaut (rootless
+> zur Verifikation, danach echter `sudo podman build` — beide erfolgreich,
+> `bootc container lint`: 10/10 Checks, nur bekannte kosmetische Warnungen).
+> Image liegt als `quay.io/metarow/noctarow:44-amd64` in root's
+> `containers-storage`; der `bootc switch` selbst steht noch aus.
 >
 > Der Yoga 920 ist die erste und aktuell einzige Plattform für das
 > Basis-Image — kein Cross-Build, kein Umweg über eine andere Maschine.
@@ -24,9 +25,7 @@ Betreiber: MetaRow Software UG
 |---|---|
 | `Containerfile` | Image-Definition |
 | `terra.repo` | gevendorte Terra-Repo-Datei (Quelle für Noctalia) |
-| `sway/` | Sway-Drop-ins fürs Image (`/usr/share/sway/config.d/`) |
-| `foot/foot.ini` | foot-System-Default (`/etc/xdg/foot/`) |
-| `sddm/`, `tmpfiles/` | Login-Screen und First-Boot-Auslieferung |
+| `overlay/` | spiegelt das Image 1:1, `COPY overlay/ /` im Build — Sway-Drop-ins, foot-Default, SDDM/vconsole, tmpfiles, Homebrew-Bootstrap (systemd-User-Unit + Skript), Terminal-Shell-Wrapper |
 | `hosts/yoga920/` | hostspezifische Overrides (Output, Tastatur, kanshi) |
 | `scripts/` | noctarow.nu (Build/Test/Push) |
 
@@ -72,4 +71,5 @@ sudo systemctl reboot
 - [ ] QEMU-Vortest vor dem Bare-Metal-Boot
 - [ ] Entscheidung: Terra (Drittanbieter) vs. `noctalia-qs` selbst bauen
 - [ ] Entscheidung: v4 (`-legacy`) vs. v5-Track
-- [ ] Brew-Integration bauen und verifizieren (siehe `docs/15-noctarow-basis-image.md`)
+- [ ] `bootc switch --transport containers-storage` + Reboot auf dem Yoga (Image liegt bereits gebaut in root's `containers-storage`)
+- [ ] Erstlogin-Kontrolle nach dem Switch (Brew-Bootstrap, Terminal-Wrapper) — siehe `docs/15-noctarow-basis-image.md`

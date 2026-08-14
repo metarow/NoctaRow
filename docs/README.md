@@ -49,19 +49,28 @@ HiDPI-Unterstützung. Gebaut für die Schulungsflotte der MetaRow Software UG.
 
 ```
 noctarow/
-├── Containerfile              # Multi-Stage Build
-├── sway/                      # Drop-ins → /usr/share/sway/config.d/
-│   ├── 50-keyboard.conf
-│   ├── 60-noctalia.conf
-│   ├── 70-output.conf
-│   ├── 90-bar.conf            # leer: verdrängt swaybar
-│   └── 90-swayidle.conf       # leer: verdrängt swayidle
-├── sddm/                      # Display-Manager: Tastatur + HiDPI
-├── tmpfiles/                  # First-Boot-Auslieferung der User-Config
-├── hosts/                     # maschinenspezifisch → /etc/sway/config.d/
+├── Containerfile               # COPY overlay/ / -- spiegelt das Image 1:1
+├── terra.repo                  # gevendort, excludepkgs=terra-obsolete
+├── overlay/
+│   ├── etc/xdg/foot/foot.ini           # shell=Terminal-Wrapper, font erhalten
+│   └── usr/
+│       ├── share/
+│       │   ├── sway/config.d/          # 30-borders … 95-noctalia
+│       │   └── noctarow/environment.noctarow   # wird an /etc/sway/environment angehaengt
+│       ├── lib/
+│       │   ├── sddm/sddm.conf.d/10-noctarow.conf
+│       │   ├── vconsole.conf.noctarow  # Quelle fuer tmpfiles-Typ C
+│       │   ├── tmpfiles.d/
+│       │   │   ├── noctarow.conf       # First-Boot-Auslieferung User-Config
+│       │   │   └── homebrew.conf       # /var/home/linuxbrew vorab, User-owned
+│       │   └── systemd/user/homebrew-bootstrap.service
+│       └── libexec/noctarow/
+│           ├── homebrew-bootstrap.sh   # Installer + nushell/helix via brew
+│           └── terminal-shell          # Wrapper: nu aus brew, sonst bash
+├── hosts/                      # maschinenspezifisch → /etc/sway/config.d/
 │   └── yoga920/
 ├── scripts/
-│   └── noctarow.nu            # Build/Test/Push, nativ auf dem Yoga
+│   └── noctarow.nu             # Build/Test/Push, nativ auf dem Yoga
 └── docs/
 ```
 

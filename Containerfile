@@ -1,39 +1,47 @@
 FROM quay.io/fedora-ostree-desktops/sway-atomic:44
 
-# Terra (Fyra Labs): Quelle für noctalia-shell + noctalia-qs, baut für x86_64 und aarch64.
-# Gevendort statt per curl geholt -> nachvollziehbar im Git.
+# Manche Pakete verlangen ein vorhandenes /var/roothome, sonst bricht der Build ab.
+RUN mkdir -p /var/roothome
+
+# Terra (Fyra Labs): Quelle für noctalia-shell/noctalia-qs, x86_64 + aarch64.
+# Gevendort inkl. excludepkgs=terra-obsolete und skip_if_unavailable=False.
 COPY terra.repo /etc/yum.repos.d/terra.repo
 
+# --- Schicht 1: Noctalia (dnf) ---
 # noctalia-qs verlangt Qt 6.11; dnf hebt qt6-qtbase als normale Abhängigkeit an.
-# Das "eingefrorene Basis-Paket"-Problem von rpm-ostree install existiert hier nicht.
-RUN dnf install -y \
-        noctalia-shell \
-        nushell \
-        helix \
+# Bewusst NICHT im Image: nushell und helix -- die kommen per brew nach /var.
+RUN dnf install -y noctalia-shell \
     && dnf clean all \
     && rm -rf /var/cache/libdnf5 /var/cache/dnf
 
-# Sway-Drop-ins nach /usr/share: Dateiname = Identität, Prefix = Ladereihenfolge.
-# Leere 90-*-Dateien verdrängen waybar und swayidle (Kollision mit Noctalia).
-COPY sway/30-borders.conf    /usr/share/sway/config.d/30-borders.conf
-COPY sway/50-keyboard.conf   /usr/share/sway/config.d/50-keyboard.conf
-COPY sway/70-output.conf     /usr/share/sway/config.d/70-output.conf
-COPY sway/90-bar.conf        /usr/share/sway/config.d/90-bar.conf
-COPY sway/90-swayidle.conf   /usr/share/sway/config.d/90-swayidle.conf
-COPY sway/95-noctalia.conf   /usr/share/sway/config.d/95-noctalia.conf
+# Guard: erfolgreicher dnf-Exit-Code ist KEIN Beweis der Installation
+# (Obsoletes-Umleitung, siehe terra-obsolete-Vorfall).
+RUN rpm -q noctalia-shell
 
-# environment.noctarow ANHAENGEN, nicht ersetzen -- /usr/share/sway/environment
-# existiert bei Fedora nicht und wird von niemandem gelesen.
-# /etc/sway/environment wird von /usr/bin/start-sway gesourct.
-COPY sway/environment.noctarow /tmp/environment.noctarow
-RUN cat /tmp/environment.noctarow >> /etc/sway/environment \
-    && rm /tmp/environment.noctarow
+# --- Schicht 2: Build-Toolchain für Homebrew (read-only in /usr) ---
+# brew selbst landet zur Laufzeit in /var/home/linuxbrew, nie im Image.
+RUN dnf -y install \
+        @development-tools \
+        gcc gcc-c++ make \
+        procps-ng curl file git \
+        libxcrypt-compat \
+    && dnf clean all \
+    && rm -rf /var/cache/libdnf5 /var/cache/dnf
 
-# foot liest die System-Default über $XDG_CONFIG_DIRS, nicht /usr/share
-COPY foot/foot.ini /etc/xdg/foot/foot.ini
+# --- Schicht 3: Overlay (Sway, foot, SDDM, tmpfiles, Bootstrap, Wrapper) ---
+COPY overlay/ /
 
-# Login-Screen: HiDPI + Tastatur
-COPY sddm/    /usr/lib/sddm/sddm.conf.d/
-COPY tmpfiles/ /usr/lib/tmpfiles.d/
+RUN chmod +x /usr/libexec/noctarow/homebrew-bootstrap.sh \
+             /usr/libexec/noctarow/terminal-shell \
+    && systemctl --global enable homebrew-bootstrap.service
 
+# Sway-Umgebung: append, nicht ersetzen -- start-sway sourct /etc/sway/environment.
+RUN cat /usr/share/noctarow/environment.noctarow >> /etc/sway/environment
+
+# Qualitätssicherung
 RUN bootc container lint
+
+LABEL org.opencontainers.image.title="Noctarow" \
+      org.opencontainers.image.description="Fedora Sway Atomic + Noctalia + Homebrew-Toolchain (nushell/helix via brew)" \
+      org.opencontainers.image.vendor="MetaRow Software UG" \
+      containers.bootc="1"

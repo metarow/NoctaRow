@@ -612,6 +612,13 @@ open --raw ($nu.home-path | path join $".config/sway/config.d.bak-($ts)/30-borde
 
 #### `Containerfile`
 
+> [!warning] Historisch — das echte Containerfile sieht heute anders aus
+> Diese flache `COPY sway/…`-Variante wurde am 2026-08-14 durch das
+> Overlay+Brew-Design aus [[docs/15-noctarow-basis-image]] ersetzt
+> (`COPY overlay/ /`, kein `nushell`/`helix` per dnf mehr). Als
+> Session-Protokoll unverändert stehen gelassen — nicht als aktuelle Anleitung
+> lesen.
+
 ```nu
 r#'FROM quay.io/fedora-ostree-desktops/sway-atomic:44
 
