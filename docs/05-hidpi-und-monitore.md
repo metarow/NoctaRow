@@ -6,7 +6,7 @@ tags: [hidpi, skalierung, sway, kanshi, sddm, beamer, xwayland]
 
 # 05 — HiDPI, Skalierung, Monitore
 
-## Der Grundsatz: ganzzahlig, wenn möglich
+## Der Grundsatz: ganzzahlig ist der Sonderfall, nicht das Ziel
 
 Sway kann fraktionale Skalierung (`scale 1.5`). Der Preis: **XWayland-Fenster
 werden unscharf.** Xwayland kennt keine fraktionale Skalierung, Sway rendert
@@ -16,17 +16,24 @@ Bei Wayland-nativen Anwendungen ist fraktional inzwischen sauber (via
 `wp_fractional_scale_v1`). In einer Schulungsumgebung mit LibreOffice, Zoom,
 Legacy-Java-Tools ist XWayland aber garantiert im Spiel.
 
+`scale 2` auf dem Yoga 920 ist zwar ganzzahlig (3840×2160 → 1920×1080
+logisch), aber in der Praxis zu grob: Panels/Widgets — insbesondere
+Noctalia — wirken doppelt so groß wie gewollt. Deshalb `scale 1.5`
+(→ 2560×1440 logisch) als Kompromiss, XWayland-Unschärfe bewusst
+akzeptiert.
+
 | Panel | Auflösung | Empfehlung | Logisch |
 |---|---|---|---|
-| Yoga 920, 4K | 3840×2160 @ 13,9" | `scale 2` | 1920×1080 |
+| Yoga 920, 4K | 3840×2160 @ 13,9" | `scale 1.5` | 2560×1440 |
 | Yoga 920, FHD | 1920×1080 @ 13,9" | `scale 1` | 1920×1080 |
 | Beamer | 1920×1080 | `scale 1` | 1920×1080 |
 | Externer 27" WQHD | 2560×1440 | `scale 1` | 2560×1440 |
 
-> [!tip] Das Yoga 920 ist ein Glücksfall
-> 3840×2160 bei `scale 2` ergibt exakt 1920×1080 logisch. Ganzzahlig, also
-> keine XWayland-Unschärfe, und die logische Größe entspricht dem, was ein
-> Beamer ohnehin liefert. Beides nebeneinander funktioniert ohne Kompromiss.
+> [!note] scale 2 als Rückweg
+> Ganzzahlig und ohne XWayland-Unschärfe, logische Größe entspricht exakt
+> dem, was ein Beamer liefert. Kommt wieder infrage, falls eine
+> Schulungsflotte mit viel Legacy-XWayland-Software Ziel wird (siehe
+> README).
 
 Panel-Variante feststellen:
 
@@ -90,9 +97,9 @@ nichts zu tun sein.
 
 > [!warning] Zu prüfen
 > Noctalia v5 bringt eine eigene Skalierungseinstellung in seiner
-> Konfiguration mit. Wenn Panel und Widgets bei `scale 2` doppelt so groß
-> aussehen wie gewollt, ist das der Grund — nicht Sway. Der Wert gehört dann
-> auf `1`, weil Sway die Skalierung bereits erledigt.
+> Konfiguration mit. Falls Panel und Widgets trotz `scale 1.5` in Sway
+> immer noch zu groß aussehen, ist das der Grund — nicht Sway. Der Wert
+> gehört dann auf `1`, weil Sway die Skalierung bereits erledigt.
 
 ## Mehrere Monitore: kanshi
 
@@ -104,11 +111,11 @@ Statisch in der Sway-Config zu skalieren funktioniert nur, solange sich nichts
 
 ```
 profile mobil {
-    output eDP-1 enable mode 3840x2160 position 0,0 scale 2
+    output eDP-1 enable mode 3840x2160 position 0,0 scale 1.5
 }
 
 profile beamer {
-    output eDP-1  enable mode 3840x2160 position 0,0    scale 2
+    output eDP-1  enable mode 3840x2160 position 0,0    scale 1.5
     output HDMI-A-1 enable mode 1920x1080 position 1920,0 scale 1
 }
 
@@ -123,7 +130,7 @@ angeschlossenen Ausgänge.
 
 > [!caution] Spiegeln bei unterschiedlicher Skalierung
 > Ein gespiegelter Beamer (`output HDMI-A-1 position 0,0` bei gleichzeitig
-> `scale 2` auf dem Panel) zwingt Sway zu einer Software-Kopie des
+> `scale 1.5` auf dem Panel) zwingt Sway zu einer Software-Kopie des
 > Framebuffers. Das kostet spürbar Leistung.
 >
 > Für Präsentationen besser: **nebeneinander**, und das zu zeigende Fenster auf

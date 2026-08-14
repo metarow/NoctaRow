@@ -294,8 +294,9 @@ not permitted" nicht raten, sondern isolieren.
   Workspace-Indikators. Container-Artefakt oder echt? Nur auf Hardware messbar.
 - **`failed to parse config file`** nach kanshis `Found config *` — Urheber via
   `grep -rn exec /etc/sway /usr/share/sway/config.d` finden
-- **`scale 1.5` vs. `scale 2`** — Widerspruch zu
-  [[docs/05-hidpi-und-monitore]]
+- ~~**`scale 1.5` vs. `scale 2`**~~ — geklärt: `scale 2` war ganzzahlig, aber
+  Noctalia/Panels wirkten damit doppelt so groß. `scale 1.5` gesetzt (Repo +
+  Live-System), [[docs/05-hidpi-und-monitore]] entsprechend korrigiert.
 - **`sddm/`, `tmpfiles/`, `bootc container lint`** — nie gegen einen Build
   verifiziert
 
