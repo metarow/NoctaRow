@@ -13,7 +13,16 @@ aliases:
   - "Homebrew-Image bauen"
   - "Coaching bootc Leitfaden"
 status: aktiv
+teil_von: "[[README]]"
 ---
+
+> [!info] Verhältnis zu Noctarow
+> Dieser Leitfaden entstand als eigenständiges Coaching-Projekt (`atomic-brew`,
+> generischer Repo-/Image-Name, Platzhalter wie `DEIN-GH-NAME`) und ist die
+> Vorarbeit, aus der [[docs/15-noctarow-basis-image]] die Brew-Integration für
+> Noctarow ableitet. Befehle/Namen hier sind generisch gehalten; die
+> Noctarow-spezifische Umsetzung (Pfade, Overlay-Struktur, Zusammenspiel mit
+> Noctalia) steht in `15`, nicht hier.
 
 # Eigenes bootc-Image mit Homebrew-Toolchain — `atomic-brew`
 

@@ -10,7 +10,15 @@ tags:
 erstellt: 2026-07-06
 system: Fedora 44 · Hyprland (Lua) · x86_64
 status: aktiv
+kontext: Hyprland-Vorläufer — Noctarow setzt auf Sway, die IPC-Befehle unten (qs -c, Runner-Namenskopplung) bleiben compositor-unabhängig gültig
 ---
+
+> [!warning] Kontext: Hyprland-Vorläufer
+> Diese Notiz stammt aus der Zeit vor der Sway-Entscheidung für Noctarow. Der
+> Systemangaben-Tag „Hyprland" ist **kein** Hinweis auf den Noctarow-Zielweg
+> (siehe [[docs/01-erkenntnisse]] und [[docs/16-erkenntnisse-noctalia-container]]
+> für den aktuellen Sway-Stand). Die hier beschriebenen Quickshell-IPC-Befehle
+> und die Runner-Namenskopplung sind compositor-unabhängig und bleiben gültig.
 
 # Noctalia starten
 

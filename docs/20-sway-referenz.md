@@ -7,7 +7,7 @@ erstellt: 2026-08-07
 status: entwurf
 ---
 
-# 18 — Sway-Referenz: Fensterregeln, IPC, Nutzungsmodell
+# 20 — Sway-Referenz: Fensterregeln, IPC, Nutzungsmodell
 
 ## 1 · Fensterkriterien
 

@@ -9,7 +9,7 @@ verifiziert_gegen: keine (Recherche + Herleitung; Live-Test steht aus)
 status: entwurf
 ---
 
-# 18 — Flatpak auf Sway Atomic
+# 19 — Flatpak auf Sway Atomic
 
 Klärung dreier zusammenhängender Fragen: Läuft Flatpak auf dem Base-Image
 schon out of the box, gibt es dafür eine grafische Oberfläche, und wohin

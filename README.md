@@ -6,6 +6,13 @@ Primäre Zielhardware: Lenovo Yoga 920-13IKB (x86_64, 4K, Intel UHD 620)
 
 Betreiber: MetaRow Software UG
 
+> [!info] Zielarchitektur vs. aktueller Stand
+> Dieses `Containerfile` installiert aktuell `noctalia-shell`, `nushell` und
+> `helix` alle per `dnf`. Geplant ist eine Brew-Integration: `nushell`/`helix`
+> künftig zur Laufzeit über Homebrew (`/var/home/linuxbrew`) statt im Image,
+> Details in `docs/15-noctarow-basis-image.md`. Bis diese Umstellung gebaut
+> und verifiziert ist, gilt das hier beschriebene reine-dnf-Vorgehen.
+
 ## Struktur
 
 | Pfad | Zweck |
@@ -60,3 +67,4 @@ sudo systemctl reboot
 - [ ] QEMU-Vortest vor dem Bare-Metal-Boot
 - [ ] Entscheidung: Terra (Drittanbieter) vs. `noctalia-qs` selbst bauen
 - [ ] Entscheidung: v4 (`-legacy`) vs. v5-Track
+- [ ] Brew-Integration bauen und verifizieren (siehe `docs/15-noctarow-basis-image.md`)

@@ -68,6 +68,65 @@ exec qs -p /etc/xdg/quickshell/noctalia-shell/shell.qml
 > Der `Shell ID`-Hash ist pfadbasiert — mit `-c` käme derselbe heraus, `-p`
 > verschiebt also **nicht**, wo Noctalia Daten ablegt.
 
+## Config-Layout, Versions-Gate und Theming (aus der Wegwerf-Layer-Exploration)
+
+> [!info] Herkunft
+> Diese drei Punkte stammen aus dem ersten Wegwerf-Layer-Test auf dem laufenden
+> System (`rpm-ostree install`, vor dem Container-Durchlauf) und sind hier
+> zusammengeführt, weil dieser Foliensatz nicht neu erstellt werden musste —
+> lediglich die Config-Pfade unten sind mit `noctalia-qs 0.0.12` (s. u.) leicht
+> präzisiert.
+
+### Nushell-Versions-Gate für den Sway-Workspace-Backend
+
+Der Sway-Workspace-Backend kam erst im Laufe der v4-Serie dazu. Maßgeblich ist
+die **Paketversion** von `noctalia-shell`, nicht `qs --version` (das liefert
+die Version des `noctalia-qs`-Runtimes):
+
+```nu
+let ver = (rpm -q --queryformat '%{VERSION}' noctalia-shell)
+let parts = ($ver | split row '.')
+let major = ($parts | get 0 | into int)
+let minor = ($parts | get 1 | into int)
+
+if $major == 4 and $minor >= 7 {
+    print $"Noctalia ($ver) – Sway-Workspace-Backend vorhanden ✓"
+} else {
+    print $"Noctalia ($ver) – zu alt für Sway-Workspaces, bitte aktualisieren"
+}
+```
+
+### Config-Pfade
+
+| Zweck | Pfad |
+|---|---|
+| Shell-QML (aus Terra-Paket, system-weit) | `/etc/xdg/quickshell/noctalia-shell/` |
+| Deine Settings (JSON, von der Shell geschrieben) | `~/.config/noctalia/` |
+| Cache / Wallpaper etc. | `~/.cache/noctalia/` |
+
+Konfiguriert wird primär über das Settings-Panel in der laufenden Shell (nicht
+durch Handeditieren) — es schreibt nach `~/.config/noctalia/`. Zum Start des
+QML-Pfads selbst siehe oben, [„`qs -c noctalia-shell` funktioniert mit dem
+Terra-Paket nicht"](#qs--c-noctalia-shell-funktioniert-mit-dem-terra-paket-nicht) —
+`-p /etc/xdg/quickshell/noctalia-shell/shell.qml` ist der verifizierte Weg.
+
+### Theming-Env (qt6ct/Kvantum-Kontext)
+
+Für konsistentes Icon-/Theming-Verhalten sind zwei Env-Variablen relevant.
+Für die Exploration reicht ein temporäres Setzen via `with-env`; fürs Image
+gehören sie system-weit in `sway/environment.noctarow`:
+
+```nu
+with-env { QT_QPA_PLATFORMTHEME: gtk3 } { qs -c noctalia-shell }
+```
+
+Icon-Theme danach mit `nwg-look` wählen. Der Quickshell-IPC-Quirk erlaubt
+zudem `QT_QPA_PLATFORM=wayland;xcb` (IPC-Calls funktionieren damit korrekt).
+
+> [!note] Noch nicht gegen den Container verifiziert
+> Diese Env-Variablen stammen aus dem Wegwerf-Layer-Test auf dem laufenden
+> System, nicht aus dem nested Container. Vor Aufnahme ins Image gegenprüfen.
+
 ## Sway auf Fedora Atomic
 
 ### Fedoras sway trägt `cap_sys_nice=ep`
@@ -259,4 +318,3 @@ not permitted" nicht raten, sondern isolieren.
 - [[docs/01-erkenntnisse]]
 - [[docs/09-yoga-buildumgebung]]
 - [[Noctalia im Noctarow-Image – Containerfile und Ablauf]]
-- [[Noctalia auf Sway Atomic – Installation & Konfiguration (Exploration)]]

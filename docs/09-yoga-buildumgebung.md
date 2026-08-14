@@ -207,7 +207,7 @@ glob ($nu.home-path | path join ".cache/noctalia")
 > Border-Einstellung dauerhaft gewollt, gehört sie als Drop-in nach
 > `/usr/share/sway/config.d/` ins Containerfile — nicht ins Home. Genau die
 > Sorte Erkenntnis, für die die Exploration da war. Siehe
-> [[Noctalia auf Sway Atomic – Installation & Konfiguration (Exploration)]].
+> [[docs/16-erkenntnisse-noctalia-container]].
 
 > [!check] Fehlalarm ausgeräumt: `fedora-workstation-repositories`
 > `google-chrome.repo`, `rpmfusion-nonfree-nvidia-driver.repo`,
@@ -310,8 +310,9 @@ rpm-ostree status | lines | first 12
 
 ## Schritt 3 — Nushell als Login-Shell
 
-`chsh` fehlt auch hier. Und `usermod` ist auf Atomic der robustere Weg, weil
-der WSL-typische passwortlose sudo hier nicht gilt.
+Gleicher Mechanismus wie in [[docs/02-umgebung-wsl#Nushell als Login-Shell]]
+(`chsh` fehlt, kommt aus `util-linux-user`) — hier ohne WSL-typischen
+passwortlosen sudo, sonst identisch.
 
 ```nu
 sudo rpm-ostree install --apply-live util-linux-user
@@ -583,13 +584,15 @@ metadata_expire=4h
 > | filter {|f| open --raw $f | str contains waybar }
 > ```
 
-> [!warning] Es ist **waybar**, nicht swaybar
-> [[docs/01-erkenntnisse#Kollisionen mit Noctalia]] nennt `90-bar.conf` als
-> „startet swaybar" — das ist **falsch** und in 01 zu korrigieren. Fedora
-> startet **waybar** als eigenständigen Prozess per `exec`. Folge: `swaymsg bar
-> mode invisible` wirkt **nicht** (es gibt keinen `bar {}`-Block,
-> `swaymsg -t get_bar_config` liefert `[]`). Der leere gleichnamige Override
-> ist der richtige Weg — die Methode aus 01 stimmt, nur die Begründung nicht.
+> [!warning] swaybar vs. waybar — ungeklärt, nicht blind auf waybar ändern
+> Diese Note hatte hier "es ist waybar, nicht swaybar" behauptet und 01 zur
+> Korrektur vorgeschlagen. Das war **zu früh festgelegt**:
+> [[docs/16-erkenntnisse-noctalia-container#Die Statuszeile: swaybar oder waybar — noch offen]]
+> zieht das zurück — der Beleg fehlt in beide Richtungen, `01-erkenntnisse` ist
+> gegen das echte Image verifiziert, die waybar-Behauptung stammte aus einer
+> Websuche. Settelt sich mit `cat /usr/share/sway/config.d/90-bar.conf` gegen
+> einen laufenden Container. Der Fix (leere gleichnamige Override-Datei) wirkt
+> unabhängig vom Ergebnis — betroffen ist nur die Doku-Genauigkeit.
 
 `30-borders.conf` aus dem Home-Backup übernehmen (Inhalt vorher sichten):
 
@@ -626,7 +629,9 @@ COPY sway/90-bar.conf        /usr/share/sway/config.d/90-bar.conf
 COPY sway/90-swayidle.conf   /usr/share/sway/config.d/90-swayidle.conf
 COPY sway/95-noctalia.conf   /usr/share/sway/config.d/95-noctalia.conf
 
-COPY sway/environment.noctarow /usr/share/sway/environment
+COPY sway/environment.noctarow /tmp/environment.noctarow
+RUN cat /tmp/environment.noctarow >> /etc/sway/environment \
+    && rm /tmp/environment.noctarow
 
 # foot liest die System-Default über $XDG_CONFIG_DIRS, nicht /usr/share
 COPY foot/foot.ini /etc/xdg/foot/foot.ini
@@ -638,6 +643,15 @@ COPY tmpfiles/ /usr/lib/tmpfiles.d/
 RUN bootc container lint
 '# | save Containerfile
 ```
+
+> [!check] Korrektur: `/etc/sway/environment`, nicht `/usr/share/sway/environment`
+> Diese Note hatte ursprünglich `COPY … /usr/share/sway/environment` — diese
+> Datei existiert bei Fedora **nicht** und wird von niemandem gelesen.
+> `/usr/bin/start-sway` sourct `/etc/sway/environment`; die Datei muss
+> **angehängt**, nicht ersetzt werden, sonst verschwindet Fedoras
+> `_JAVA_AWT_WM_NONREPARENTING=1`. Verifiziert in
+> [[docs/16-erkenntnisse-noctalia-container#`/usr/share/sway/environment` existiert bei Fedora nicht]],
+> oben bereits korrigiert.
 
 > [!check] Konfliktauflösung: `/usr/share` statt `/etc` für die leeren Overrides
 > Die Ergänzung schlug `COPY sway/90-bar.conf /etc/sway/config.d/90-bar.conf`
@@ -774,18 +788,17 @@ noctarow build --tag 44
 
 Das Ergebnis: `quay.io/metarow/noctarow:44-amd64` und `localhost/noctarow:44`.
 
-> [!warning] Rootless vs. rootful — vor dem ersten Switch klären
-> `noctarow build` baut vermutlich **rootless**. Für
-> `bootc switch --transport containers-storage` (Schritt 9, Weg B) muss das
-> Image aber in **root's** Storage liegen. Beides ist **nicht verifiziert**.
-> Prüfen:
+> [!check] Rootless vs. rootful — geklärt
+> `noctarow build` baut **rootless** (`~/.local/share/containers/storage`).
+> `bootc switch --transport containers-storage` läuft als root und sieht nur
+> `/var/lib/containers/storage`. Brücke, verifiziert in
+> [[docs/16-erkenntnisse-noctalia-container#Rootless gebaut ≠ für `bootc switch` sichtbar]]:
 > ```nu
-> podman images | where repository =~ noctarow        # rootless-Storage
-> sudo podman images | where repository =~ noctarow   # root-Storage
+> podman save localhost/noctarow:44 | sudo podman load
 > ```
-> Steht es nur im rootless-Storage, entweder direkt mit `sudo podman build`
-> bauen oder `noctarow.nu` entsprechend anpassen. Fällt das weg, wenn du über
-> die Registry gehst (Weg A).
+> Binärdaten laufen unverfälscht durch die Nushell-Pipe; das Image liegt danach
+> zweimal auf der Platte (~6 GB je Kopie) — vorher `df -h /var` prüfen. Entfällt
+> beim Weg über die Registry (Weg A).
 
 ## Schritt 8 — Testen, ohne zu rebooten
 
@@ -834,30 +847,23 @@ systemctl reboot
 > bleiben, damit Registry- und Lokalpfad dasselbe Artefakt benennen.
 
 > [!tip] Vorher den Rückweg üben
+> Details und Prüfliste: [[docs/06-lenovo-yoga-deployment#Rollback]].
 > ```nu
 > bootc status                # zeigt Rollback-Deployment
 > sudo bootc rollback
 > systemctl reboot
 > ```
-> Wer Rollback zum ersten Mal im Ernstfall probiert, probiert es falsch.
 
 Nach dem Reboot bist du in deinem eigenen Image. `bootc status` zeigt das alte
 Deployment als Rollback-Ziel — es liegt noch da, nichts wurde überschrieben.
 
 ## Schritt 10 — Hostspezifisches nachlegen
 
+Ablauf, Zieldateien und Prüfliste: [[docs/06-lenovo-yoga-deployment#Maschinenspezifische Konfiguration]].
+
 ```nu
 noctarow apply-host yoga920
 swaymsg reload
-```
-
-Legt `70-output.conf` (Skalierung) und `50-keyboard.conf` nach
-`/etc/sway/config.d/`, wo sie die Image-Defaults verdrängen. Und das
-kanshi-Profil nach `~/.config/kanshi/config`.
-
-Danach:
-
-```nu
 noctarow output-check
 ```
 
@@ -922,7 +928,7 @@ rpm -q noctalia-shell                          # v4.7.x — Sway-Workspace-Backe
 - [ ] `kanshi`/`matugen`/`cliphist` — prüfen, was das Basis-Image schon mitbringt
 - [ ] **Klären: `scale 2` oder `scale 1.5`?** — Widerspruch zu [[docs/05-hidpi-und-monitore]]
 - [ ] **Klären: baut `noctarow build` rootless oder rootful?**
-- [ ] [[docs/01-erkenntnisse]] korrigieren: `90-bar.conf` startet **waybar**, nicht swaybar
+- [ ] swaybar vs. waybar per `cat 90-bar.conf` im Container klären (s. o., **nicht** blind 01 ändern)
 - [ ] [[docs/07-referenz-quellen]] korrigieren: `quickshell` kollidiert mit `noctalia-qs`
 - [ ] Erster Build und Switch
 - [ ] Nach erstem Boot: `pgrep -al waybar` leer? Login-Shell noch Nushell?
@@ -934,7 +940,7 @@ rpm -q noctalia-shell                          # v4.7.x — Sway-Workspace-Backe
 - [[docs/05-hidpi-und-monitore]]
 - [[docs/06-lenovo-yoga-deployment]]
 - [[docs/10-github-repository]]
-- [[Noctalia auf Sway Atomic – Installation & Konfiguration (Exploration)]]
+- [[docs/16-erkenntnisse-noctalia-container]]
 
 
 Naechster Schritt -- bewusst selbst ausfuehren:

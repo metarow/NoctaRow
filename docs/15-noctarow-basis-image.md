@@ -5,10 +5,18 @@ teil_von: "[[README]]"
 tags: [bootc, podman, homebrew, sway, noctalia, nushell, terra, containerfile, bash]
 zielgeraet: Lenovo Yoga 920-13IKB (x86_64), Dozenten-PC
 erstellt: 2026-08-02
-status: entwurf
+status: zielarchitektur — noch nicht gebaut
 ---
 
 # 15 — Noctarow-Basis-Image: atomic-brew + Noctarow-Konfiguration
+
+> [!important] Das ist die Zielarchitektur, nicht der aktuelle Stand
+> Der `Containerfile` im Repo-Root macht aktuell noch reines `dnf install
+> noctalia-shell nushell helix` — die hier beschriebene Brew-Integration ist
+> **geplant, aber noch nicht umgesetzt**. Diese Note ersetzt den einfachen
+> dnf-Ansatz als nächsten Bauversuch, sobald die offenen Punkte unten geklärt
+> sind. Bis dahin bleibt das reale Containerfile die Wahrheit für das, was
+> tatsächlich läuft.
 
 > [!important] Neues Vorgehen — überschreibt alte Annahmen
 > 1. **nushell und helix kommen ausschließlich über Homebrew** nach
@@ -24,10 +32,11 @@ status: entwurf
 
 Zusammengeführt werden:
 
-1. **atomic-brew** (Chat „Linuxbrew auf Fedora Atomic"): Build-Toolchain
-   read-only in `/usr`, Homebrew zur Laufzeit in `/var/home/linuxbrew`,
-   tmpfiles-Regel gegen die sudo-Falle des Installers, systemd-User-Unit
-   als Erstinstallation, `COPY overlay/ /` als Strukturprinzip.
+1. **atomic-brew** ([[docs/13-leitfaden-atomic-brew-homebrew]], Fehlerlog in
+   [[docs/14-troubleshooting-atomic-brew]]): Build-Toolchain read-only in
+   `/usr`, Homebrew zur Laufzeit in `/var/home/linuxbrew`, tmpfiles-Regel
+   gegen die sudo-Falle des Installers, systemd-User-Unit als
+   Erstinstallation, `COPY overlay/ /` als Strukturprinzip.
 2. **Noctarow-Konfiguration** ([[docs/09-yoga-buildumgebung]] + Noctalia-
    Integration): Terra gevendort, `noctalia-shell` per dnf, Sway-Drop-in-
    Kette, foot-Default, SDDM-HiDPI, Guard gegen `terra-obsolete`.

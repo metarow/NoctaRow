@@ -9,7 +9,7 @@ verifiziert_gegen: Nushell 0.114.1 (save/mkdir-Semantik), Sway-Border-Doku
 status: entwurf
 ---
 
-# 18 — Sway: Fenstertitelleiste ausblenden
+# 21 — Sway: Fenstertitelleiste ausblenden
 
 Sway hat **keine** eigene „Titelleiste-aus"-Option. Der Titel hängt am
 **Border-Typ** eines Fensters — wer die Leiste loswerden will, ändert den

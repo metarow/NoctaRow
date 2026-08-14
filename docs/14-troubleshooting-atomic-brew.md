@@ -9,7 +9,14 @@ tags:
   - github
   - ssh
 status: aktiv
+teil_von: "[[README]]"
 ---
+
+> [!info] Verhältnis zu Noctarow
+> Fehlerlog zum selben Coaching-Projekt wie [[docs/13-leitfaden-atomic-brew-homebrew]].
+> Relevant für Noctarow als Referenz, welche Stolpersteine beim Brew-Ansatz
+> bereits gelöst sind (Punkt 3, `bootc container lint`-Warnungen, ist z. B.
+> in [[docs/15-noctarow-basis-image]] bereits vorweggenommen).
 
 # Troubleshooting-Log: bootc-Image `atomic-brew`
 
