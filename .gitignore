@@ -1,12 +1,5 @@
 # Obsidian – gerätespezifischer Zustand, niemals synchronisieren
-docs/.obsidian/workspace.json
-docs/.obsidian/workspace-mobile.json
-docs/.obsidian/workspace
-docs/.obsidian/cache
-docs/.obsidian/graph.json
-
-# Plugin-Laufzeitdaten, die Konflikte erzeugen
-docs/.obsidian/plugins/plugin-name/data.json
+docs/.obsidian/
 
 # Papierkorb
 docs/.trash/
