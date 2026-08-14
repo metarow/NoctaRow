@@ -205,10 +205,12 @@ Cgroup weiter und hielt sie dadurch nicht leer. `loginctl terminate-session`
 raeumte die Session deswegen nicht auf; erst `kill` auf die Waisen-PID leerte
 die Cgroup, danach hat systemd/logind Scope und Session sofort entfernt.
 
-> [!note] Einmalig beobachtet, kein bestaetigtes Muster
-> Nur ein Vorkommen, noch nicht reproduziert. Falls es wiederkehrt: pruefen,
-> was `nmcli monitor` startet (vermutlich ein Statusleisten-Widget) und ob es
-> bei `Compositor Logout requested` sauber beendet wird.
+> [!note] Reproduziert (2026-08-14, zweiter Logout/Login-Zyklus)
+> Gleiches Muster erneut aufgetreten: nach Ab-/Anmelden blieb `session-6.scope`
+> im Zustand `closing` haengen, `cgroup.procs` der Scope enthielt nur noch die
+> verwaiste `nmcli -t monitor`-PID (PPID 1). Damit kein Einzelfall mehr,
+> sondern reproduzierbar bei Sway-Logout. Offen: welches Widget `nmcli monitor`
+> startet und warum es bei `Compositor Logout requested` nicht mitbeendet wird.
 
 ## bootc / rpm-ostree / podman
 
