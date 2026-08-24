@@ -35,23 +35,26 @@ gh auth login
 Dann, im lokalen Projektverzeichnis:
 
 ```nu
-cd ~/projekte/noctarow
-gh repo create metarow/noctarow --public --source . --remote origin --push
+cd ~/Projekte/NoctaRow
+gh repo create metarow/noctarow --public --source . --remote github --push
 ```
 
 Alternativ von Hand auf `github.com/organizations/metarow`, dann:
 
 ```nu
-git remote add origin git@github.com:metarow/noctarow.git
+git remote add github git@github.com:metarow/NoctaRow.git
 git branch -M main
-git push -u origin main
+git push -u github main
 ```
 
 ### SSH statt HTTPS
 
 ```nu
-ssh-keygen -t ed25519 -C "fritz@metarow"
-cat ~/.ssh/id_ed25519.pub
+ssh-keygen -t ed25519 -a 100 \
+  -C "obsidian-sync@metarow" \
+  -f ~/.ssh/github.com \
+  -N ""
+cat ~/.ssh/github.com.pub
 ```
 
 Den öffentlichen Schlüssel unter *GitHub → Settings → SSH and GPG keys*
@@ -59,6 +62,12 @@ eintragen. **Nur den öffentlichen.** Der private verlässt das Gerät nie.
 
 ```nu
 ssh -T git@github.com
+```
+
+```
+git remote add github git@github.com:metarow/NoctaRow.git
+git branch -M main
+git push -u github main
 ```
 
 ## Schritt 2 — Lizenz und Metadaten
