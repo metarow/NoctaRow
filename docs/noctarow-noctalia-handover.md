@@ -1,8 +1,10 @@
 # Noctarow: Noctalia startet nicht — Diagnose & offene Aufgaben
 
 **Projekt:** Noctarow (bootc-Image, Fedora Sway Atomic 44 + Noctalia + Homebrew-Toolchain)
-**Repo-Artefakte:** `Containerfile`, `terra.repo`, `overlay/`
-**Stand:** 2026-08-25 — Ursache gefunden und manuell verifiziert, Fix noch nicht im Image
+**Repo-Artefakte:** `Containerfile`, `terra.repo`, `overlay/`, `scripts/noctarow.nu`
+**Stand:** 2026-08-25 — Fix im Image (4.1, 4.2), Abhängigkeiten geprüft (4.3),
+Rollout-Check ergänzt (4.4). Offen: 5 (Architektur-Empfehlung, nicht
+dringend), 6 (Roadmap-Notiz v4→v5).
 
 ---
 
@@ -93,27 +95,50 @@ RUN ! grep -rq "noctalia-shell/shell.qml" /etc/sway/ \
 Der bestehende Guard `RUN rpm -q noctalia-shell` bleibt, deckt aber nur den
 RPM-DB-Eintrag ab — nicht die Payload und nicht den Startpfad.
 
-### 4.3 Optionale Abhängigkeiten prüfen
+### 4.3 Optionale Abhängigkeiten prüfen — erledigt, kein Fix nötig
 
-Terra empfiehlt für Noctalia Zusatzprogramme (u. a. `brightnessctl`, `cava`,
-`wlsunset`), die `dnf install noctalia-shell` nicht mitzieht. Ohne sie startet
-die Shell, einzelne Widgets bleiben aber leer. Für die Schulungsflotte
-vermutlich mit ins Image aufnehmen. Konkrete Liste beim Start prüfen:
+Prüfung im Container (`dnf history info 1` nach `dnf install -y
+noctalia-shell`): dnf zieht Weak Dependencies standardweise mit
+(`install_weak_deps` ist nirgends in `/etc/dnf/` deaktiviert). Ergebnis der
+Transaktion:
+
+| Programm | Quelle |
+|---|---|
+| `brightnessctl` | harte Abhängigkeit von `noctalia-shell` |
+| `wlsunset`, `wl-copy`, `wpctl`, `nmcli` | bereits im Basisimage `sway-atomic:44` |
+| `cava`, `cliphist`, `ddcutil` (+ `i2c-tools`), `matugen`, `gpu-screen-recorder`, `xrandr`, `lsb_release` | Weak Dependencies von `noctalia-shell`/Terra, automatisch von `dnf install noctalia-shell` mitgezogen |
+
+Die im Abschnitt „Ausgangssymptom" vermutete Lücke besteht für den aktuellen
+Terra-Paketstand nicht. Verifiziert per `command -v`/`rpm -qf` im gebauten
+Image (`localhost/noctarow:44`) — alle acht geprüften Programme vorhanden,
+keine manuelle Ergänzung im Containerfile nötig. Bei einem Terra-Update
+erneut prüfen, falls sich die Paket-Metadaten ändern.
+
+### 4.4 `/etc`-Merge beim Rollout beachten — Risiko geringer als vermutet, Check ergänzt
+
+Die exec-Zeile steckte nie in `/etc/sway/config`, sondern in
+`overlay/usr/share/sway/config.d/95-noctalia.conf` (siehe 4.1) — landet also
+unter `/usr`, das bei jedem `bootc upgrade`/`switch` komplett ersetzt wird.
+Der klassische Drei-Wege-Merge betrifft diese Datei **nicht**.
+
+Restrisiko: Sway lädt `config.d`-Fragmente gestaffelt
+(`/usr/share/sway/config.d/` → `/etc/sway/config.d/` → `$XDG_CONFIG_HOME/sway/config.d/`,
+spätere Stufe gewinnt bei gleichem Dateinamen — siehe Kommentar in
+`/etc/sway/config`). Falls auf einem Gerät während der Fehlersuche manuell
+eine gleichnamige Datei unter `/etc/sway/config.d/95-noctalia.conf` angelegt
+wurde (oder `/etc/sway/config` direkt editiert), überschreibt das weiterhin
+lautlos den Image-Fix — das *ist* ein `/etc`-Fall und übersteht `bootc
+upgrade`.
+
+Check dafür jetzt in `scripts/noctarow.nu` als `noctarow etc-drift-check`
+(auf dem Zielgerät ausführen, nicht im Image):
 
 ```bash
-qs -c noctalia-shell 2>&1 | grep -i "not found"
+sudo ostree admin config-diff | grep sway
 ```
 
-### 4.4 `/etc`-Merge beim Rollout beachten
-
-Auf Maschinen, auf denen die alte Session schon lief, kann `/etc/sway/config`
-inzwischen als lokal modifiziert gelten. Dann greift der ostree-Drei-Wege-Merge
-und die Korrektur kommt per `bootc switch` **nicht** an. Vor dem Flotten-Rollout
-auf einem Testgerät prüfen:
-
-```bash
-ostree admin config-diff | grep sway
-```
+meldet lokale Abweichungen unter `/etc/sway` und weist explizit auf eine
+kollidierende `95-noctalia.conf` hin, falls vorhanden.
 
 ---
 

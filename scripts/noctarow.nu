@@ -332,3 +332,31 @@ export def "noctarow apply-host" [host: string] {
         print $"($noctalia) → ~/.config/noctalia/settings.json"
     }
 }
+
+# Prüft vor einem `bootc upgrade`, ob eine lokale /etc-Datei den Image-
+# Fix für den Noctalia-Startpfad ueberschreiben wuerde.
+#
+# 95-noctalia.conf liegt im Image unter /usr/share/sway/config.d/ und wird
+# bei jedem Upgrade komplett ersetzt -- der klassische 3-Wege-Merge betrifft
+# diese Datei NICHT. Riskant ist nur eine gleichnamige Datei unter
+# /etc/sway/config.d/ (oder eine Handaenderung in /etc/sway/config), die laut
+# Sway's layered-include Vorrang vor der Image-Version haette. Auf dem
+# Zielrechner ausführen, nicht im Image.
+export def "noctarow etc-drift-check" [] {
+    let treffer = (sudo ostree admin config-diff | lines | where {|l| $l =~ "sway" })
+
+    if ($treffer | is-empty) {
+        print $"(ansi green)Kein lokal abweichendes /etc/sway -- Image-Fix greift ungehindert.(ansi reset)"
+        return
+    }
+
+    print $"(ansi yellow)Lokal abweichende Dateien unter /etc/sway:(ansi reset)"
+    $treffer | each {|l| print $"  ($l)" }
+
+    if ($treffer | any {|l| $l =~ "95-noctalia.conf" }) {
+        print ""
+        print $"(ansi red)Achtung:(ansi reset) /etc/sway/config.d/95-noctalia.conf ueberschreibt die Image-Version."
+        print "Vermutlich ein manueller Workaround aus der Fehlersuche -- entfernen, bevor der Fix greifen kann:"
+        print "  sudo rm /etc/sway/config.d/95-noctalia.conf"
+    }
+}
