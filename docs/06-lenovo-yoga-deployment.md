@@ -134,8 +134,12 @@ journalctl --user -u kanshi -n 20
 | Maschine | Arch | Image-Tag | Host-Override |
 |---|---|---|---|
 | Yoga 920 | x86_64 | `stable` | `hosts/yoga920` |
+| ASUS VivoBook X515JA | x86_64 | `44` (lokal) | `hosts/asus-x515ja` |
 | Schulungs-PCs Intel/AMD | x86_64 | `stable` | noch anzulegen |
 | Schulungs-PCs NVIDIA | x86_64 | `stable-nvidia` | eigener Build |
+
+Ablauf, um für ein weiteres Gerät zu ermitteln, was einen eigenen
+Host-Override braucht: [[docs/22-host-override-neue-hardware]].
 
 Die NVIDIA-Variante braucht ein eigenes Containerfile mit
 `akmod-nvidia`/`nvidia-driver` aus RPM Fusion — ein `FROM

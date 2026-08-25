@@ -38,6 +38,7 @@ HiDPI-Unterstützung. Gebaut für die Schulungsflotte der MetaRow Software UG.
 - [[docs/19-flatpak-auf-sway-atomic|19 — Flatpak auf Sway Atomic]]
 - [[docs/20-sway-referenz|20 — Sway-Referenz]]
 - [[docs/21-sway-titelleiste-ausblenden|21 — Sway-Titelleiste ausblenden]]
+- [[docs/22-host-override-neue-hardware|22 — Host-Override für neue Hardware anlegen]]
 - [[docs/displaylink-evdi-sway-atomic-zusammenfassung|DisplayLink/evdi auf Sway Atomic — Ergebnis]]
 
 ### Weitere Referenzen (Hyprland-Vorläufer, technisch weiter gültig)
