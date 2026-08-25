@@ -31,6 +31,12 @@ RUN dnf -y install \
 # --- Schicht 3: Overlay (Sway, foot, SDDM, tmpfiles, Bootstrap, Wrapper) ---
 COPY overlay/ /
 
+# Guard: qs -p muss auf das Verzeichnis zeigen, nie auf shell.qml --
+# sonst startet der Prozess, scheitert an den relativen QML-Imports
+# und blockiert stumm den Instanznamen.
+RUN ! grep -rq "noctalia-shell/shell.qml" /usr/share/sway/ \
+    && test -f /etc/xdg/quickshell/noctalia-shell/shell.qml
+
 RUN chmod +x /usr/libexec/noctarow/homebrew-bootstrap.sh \
              /usr/libexec/noctarow/terminal-shell \
     && systemctl --global enable homebrew-bootstrap.service
