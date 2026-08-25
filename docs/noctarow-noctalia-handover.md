@@ -3,8 +3,8 @@
 **Projekt:** Noctarow (bootc-Image, Fedora Sway Atomic 44 + Noctalia + Homebrew-Toolchain)
 **Repo-Artefakte:** `Containerfile`, `terra.repo`, `overlay/`, `scripts/noctarow.nu`
 **Stand:** 2026-08-25 — Fix im Image (4.1, 4.2), Abhängigkeiten geprüft (4.3),
-Rollout-Check ergänzt (4.4). Offen: 5 (Architektur-Empfehlung, nicht
-dringend), 6 (Roadmap-Notiz v4→v5).
+Rollout-Check ergänzt (4.4), QML-Baum nach `/usr` gespiegelt (5). Offen: 6
+(Roadmap-Notiz v4→v5, nicht dringend).
 
 ---
 
@@ -142,43 +142,49 @@ kollidierende `95-noctalia.conf` hin, falls vorhanden.
 
 ---
 
-## 5. Architektur-Empfehlung (offen, nicht dringend)
+## 5. Architektur-Empfehlung — umgesetzt
 
-Der komplette QML-Baum (~500 Dateien) liegt unter `/etc/xdg/quickshell/`. Auf
+Der komplette QML-Baum (~500 Dateien) lag unter `/etc/xdg/quickshell/`. Auf
 ostree bedeutet das: bei jedem `bootc switch` läuft der Drei-Wege-Merge über
 alle Dateien. Wird lokal auch nur eine `.qml` geändert, gilt sie als
 Admin-Modifikation und wird bei künftigen Updates nicht mehr ersetzt — Ergebnis
 wäre ein QML-Baum aus zwei Versionen, der mit Import-Fehlern abbricht.
 
-Vorschlag: Baum nach `/usr` spiegeln und von dort starten.
+Umgesetzt: Baum nach `/usr` gespiegelt und von dort gestartet, direkt hinter
+dem `rpm -q noctalia-shell`-Guard im `Containerfile`:
 
 ```dockerfile
 RUN mkdir -p /usr/share/noctarow \
     && cp -a /etc/xdg/quickshell/noctalia-shell /usr/share/noctarow/noctalia-shell
 ```
 
-Sway-Config dann auf `exec qs -p /usr/share/noctarow/noctalia-shell`.
-`/usr` ist read-only, der Merge fasst es nicht an, jedes Image bringt garantiert
-einen konsistenten Baum mit. Die RPM-Kopie in `/etc` bleibt liegen: `rpm -V`
-bleibt sauber, und Azubis haben dort weiterhin einen Ansatzpunkt zum
-Experimentieren, ohne die Flotte zu gefährden.
+`overlay/usr/share/sway/config.d/95-noctalia.conf` zeigt jetzt auf
+`exec qs -p /usr/share/noctarow/noctalia-shell`. `/usr` ist read-only, der
+Merge fasst es nicht an, jedes Image bringt garantiert einen konsistenten
+Baum mit. Die RPM-Kopie in `/etc` bleibt liegen: `rpm -V` bleibt sauber, und
+Azubis haben dort weiterhin einen Ansatzpunkt zum Experimentieren, ohne die
+Flotte zu gefährden.
 
-Passender Guard:
+Passender Guard, hinter `COPY overlay/ /` neben dem Guard aus 4.2:
 
 ```dockerfile
 RUN test -x /usr/bin/qs \
     && test -f /usr/share/noctarow/noctalia-shell/shell.qml
 ```
 
+Mit dem Umzug greift auch der `noctarow etc-drift-check` aus 4.4 unverändert
+weiter — der betrifft die Sway-Config, nicht den QML-Baum selbst.
+
 ## 6. Roadmap-Notiz: v4 → v5
 
 Terra führt inzwischen Noctalia v5. Das läuft ohne Quickshell und ohne Qt direkt
 auf Wayland/OpenGL ES und bringt ein echtes Binary mit. Die v4-Schiene (aktuell
 im Image, erkennbar am `noctalia-qs`/Qt-6.11-Kommentar im Containerfile) wird
-upstream nicht mehr gepflegt. Ein Wechsel würde die gesamte `/etc`-Problematik
-aus Abschnitt 5 erledigen und den Qt-6.11-Upgrade-Zwang aus Terra entfallen
-lassen. Vor einem Wechsel: Upstream-Stand prüfen, das Paket heißt dort
-inzwischen `noctalia` statt `noctalia-shell`.
+upstream nicht mehr gepflegt. Die `/etc`-Problematik aus Abschnitt 5 ist mit
+der `/usr`-Spiegelung bereits entschärft; ein Wechsel würde zusätzlich den
+Qt-6.11-Upgrade-Zwang aus Terra entfallen lassen. Vor einem Wechsel:
+Upstream-Stand prüfen, das Paket heißt dort inzwischen `noctalia` statt
+`noctalia-shell`.
 
 ---
 
@@ -186,7 +192,8 @@ inzwischen `noctalia` statt `noctalia-shell`.
 
 ```bash
 # Shell manuell starten (nur in laufender Wayland-Session)
-qs -p /etc/xdg/quickshell/noctalia-shell
+qs -p /usr/share/noctarow/noctalia-shell     # Produktionspfad (Image)
+qs -p /etc/xdg/quickshell/noctalia-shell     # RPM-Kopie, Azubi-Experimentierfläche
 qs -c noctalia-shell
 
 # Laufende Instanz inspizieren
@@ -195,7 +202,7 @@ qs -c noctalia-shell log
 journalctl --user -b | grep -iE "quickshell|noctalia" | tail -50
 
 # Gezielt beenden
-pkill -f "qs -p /etc/xdg/quickshell/noctalia-shell"
+pkill -f "qs -p /usr/share/noctarow/noctalia-shell"
 
 # Image ohne Registry-Fallback prüfen
 podman run --rm --pull=never localhost/noctarow:44 bash -c '…'

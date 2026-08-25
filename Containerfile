@@ -18,6 +18,16 @@ RUN dnf install -y noctalia-shell \
 # (Obsoletes-Umleitung, siehe terra-obsolete-Vorfall).
 RUN rpm -q noctalia-shell
 
+# Der QML-Baum aus dem RPM liegt unter /etc/xdg/quickshell/ und würde bei
+# jedem `bootc switch` durch den ostree Drei-Wege-Merge laufen -- ändert
+# jemand lokal auch nur eine .qml, gilt sie als Admin-Modifikation und wird
+# künftig nicht mehr ersetzt, der Baum zerfällt in zwei Versionen. Deshalb
+# eine Kopie nach /usr spiegeln und von dort starten: /usr ist read-only,
+# der Merge fasst es nicht an. Die RPM-Kopie unter /etc bleibt als
+# Experimentierfläche liegen, rpm -V bleibt sauber.
+RUN mkdir -p /usr/share/noctarow \
+    && cp -a /etc/xdg/quickshell/noctalia-shell /usr/share/noctarow/noctalia-shell
+
 # --- Schicht 2: Build-Toolchain für Homebrew (read-only in /usr) ---
 # brew selbst landet zur Laufzeit in /var/home/linuxbrew, nie im Image.
 RUN dnf -y install \
@@ -36,6 +46,11 @@ COPY overlay/ /
 # und blockiert stumm den Instanznamen.
 RUN ! grep -rq "noctalia-shell/shell.qml" /usr/share/sway/ \
     && test -f /etc/xdg/quickshell/noctalia-shell/shell.qml
+
+# Guard: der gespiegelte /usr-Baum muss existieren und qs muss ihn finden --
+# sonst startet Sway gegen einen Pfad, den kein bootc-Update mehr pflegt.
+RUN test -x /usr/bin/qs \
+    && test -f /usr/share/noctarow/noctalia-shell/shell.qml
 
 RUN chmod +x /usr/libexec/noctarow/homebrew-bootstrap.sh \
              /usr/libexec/noctarow/terminal-shell \
