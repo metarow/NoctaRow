@@ -3,8 +3,9 @@
 **Projekt:** Noctarow (bootc-Image, Fedora Sway Atomic 44 + Noctalia + Homebrew-Toolchain)
 **Repo-Artefakte:** `Containerfile`, `terra.repo`, `overlay/`, `scripts/noctarow.nu`
 **Stand:** 2026-08-25 — Fix im Image (4.1, 4.2), Abhängigkeiten geprüft (4.3),
-Rollout-Check ergänzt (4.4), QML-Baum nach `/usr` gespiegelt (5). Offen: 6
-(Roadmap-Notiz v4→v5, nicht dringend).
+Rollout-Check ergänzt (4.4), QML-Baum nach `/usr` gespiegelt (5),
+Upstream-Stand v4→v5 geprüft und Paket-Rename auf `noctalia-legacy`
+nachvollzogen (6). Alle Abschnitte abgearbeitet.
 
 ---
 
@@ -175,16 +176,41 @@ RUN test -x /usr/bin/qs \
 Mit dem Umzug greift auch der `noctarow etc-drift-check` aus 4.4 unverändert
 weiter — der betrifft die Sway-Config, nicht den QML-Baum selbst.
 
-## 6. Roadmap-Notiz: v4 → v5
+## 6. Roadmap-Notiz: v4 → v5 — Upstream-Stand geprüft, Wechsel (noch) nicht empfohlen
 
 Terra führt inzwischen Noctalia v5. Das läuft ohne Quickshell und ohne Qt direkt
-auf Wayland/OpenGL ES und bringt ein echtes Binary mit. Die v4-Schiene (aktuell
-im Image, erkennbar am `noctalia-qs`/Qt-6.11-Kommentar im Containerfile) wird
-upstream nicht mehr gepflegt. Die `/etc`-Problematik aus Abschnitt 5 ist mit
-der `/usr`-Spiegelung bereits entschärft; ein Wechsel würde zusätzlich den
-Qt-6.11-Upgrade-Zwang aus Terra entfallen lassen. Vor einem Wechsel:
-Upstream-Stand prüfen, das Paket heißt dort inzwischen `noctalia` statt
-`noctalia-shell`.
+auf Wayland/OpenGL ES und bringt ein echtes Binary mit. Die `/etc`-Problematik
+aus Abschnitt 5 ist mit der `/usr`-Spiegelung bereits entschärft; ein Wechsel
+würde zusätzlich den Qt-6.11-Upgrade-Zwang aus Terra entfallen lassen.
+
+**Upstream-Stand geprüft** (`dnf repoquery --repo=terra "noctalia*"` im
+gebauten Image):
+
+| Paket | Version | Status |
+|---|---|---|
+| `noctalia` | `5.0.0~beta.9-1.fc44` | v5, **Beta** — noch keine stabile Release |
+| `noctalia-greeter` | `1.2.1-2.fc44` | separates Login-Manager-Paket für v5 |
+| `noctalia-legacy` | `4.7.7-2.fc44` | v4-Fortsetzung, siehe unten |
+| `noctalia-shell` | `4.7.7-1.fc44` | auslaufender Alt-Name, siehe unten |
+
+Empfehlung: **nicht jetzt wechseln.** `noctalia` steht noch auf `beta.9`,
+und der Wechsel wäre keine reine Paketumbenennung, sondern ein
+Architekturwechsel: kein Quickshell/`qs` mehr, vermutlich anderes
+Config-Format, `noctalia-greeter` als zusätzliches Paket, und die
+bestehenden `hosts/*/noctalia-settings.json` (v4-Format) müssten neu
+verifiziert werden. Für eine Schulungsflotte ist das ein eigenes Vorhaben,
+kein Nebeneffekt dieses Tickets. Vor einem Wechsel: Beta-Status erneut
+prüfen, Config-Format-Migration der Host-Settings klären, Testgerät vor
+Fleet-Rollout.
+
+**Nebenbefund, bereits umgesetzt:** Terra hat die v4-Linie zwischenzeitlich
+von `noctalia-shell` auf `noctalia-legacy` umbenannt — `noctalia-legacy`
+obsoletet `noctalia-shell <= 4.7.7-1` und ist ein Release weiter
+(`-2` vs. `-1`). Dateilayout (`/etc/xdg/quickshell/noctalia-shell/...`) und
+Requires sind identisch, reines Rename. Containerfile installiert jetzt
+`noctalia-legacy` statt des auslaufenden `noctalia-shell`-Alias, um auf der
+aktiv gepflegten v4-Linie zu bleiben (verifiziert per Build, siehe
+Commit-Historie).
 
 ---
 

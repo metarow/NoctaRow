@@ -7,7 +7,8 @@ Primäre Zielhardware: Lenovo Yoga 920-13IKB (x86_64, 4K, Intel UHD 620)
 Betreiber: MetaRow Software UG
 
 > [!info] Brew-Integration umgesetzt, noch nicht per `bootc switch` aktiviert
-> `noctalia-shell` kommt per `dnf`; `nushell`/`helix` kommen **nicht** mehr ins
+> `noctalia-legacy` (Terra-Rename von `noctalia-shell`) kommt per `dnf`;
+> `nushell`/`helix` kommen **nicht** mehr ins
 > Image, sondern zur Laufzeit über Homebrew (`/var/home/linuxbrew`) —
 > Login-Shell bleibt `bash`, `nushell` wird nur dem Terminal (foot) zugeordnet.
 > Details in `docs/15-noctarow-basis-image.md`. Auf dem Yoga gebaut (rootless

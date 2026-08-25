@@ -3,20 +3,25 @@ FROM quay.io/fedora-ostree-desktops/sway-atomic:44
 # Manche Pakete verlangen ein vorhandenes /var/roothome, sonst bricht der Build ab.
 RUN mkdir -p /var/roothome
 
-# Terra (Fyra Labs): Quelle für noctalia-shell/noctalia-qs, x86_64 + aarch64.
+# Terra (Fyra Labs): Quelle für noctalia-legacy/noctalia-qs, x86_64 + aarch64.
 # Gevendort inkl. excludepkgs=terra-obsolete und skip_if_unavailable=False.
 COPY terra.repo /etc/yum.repos.d/terra.repo
 
 # --- Schicht 1: Noctalia (dnf) ---
 # noctalia-qs verlangt Qt 6.11; dnf hebt qt6-qtbase als normale Abhängigkeit an.
+# Terra hat die v4-Linie von noctalia-shell auf noctalia-legacy umbenannt
+# (noctalia-legacy obsoletet noctalia-shell <= 4.7.7-1); Dateilayout und
+# Requires sind identisch, nur der Paketname und der Ablageort in /etc/xdg
+# heißen weiterhin "noctalia-shell". noctalia-legacy ist die aktiv
+# gepflegte Fortsetzung, noctalia-shell ein auslaufender Alias.
 # Bewusst NICHT im Image: nushell und helix -- die kommen per brew nach /var.
-RUN dnf install -y noctalia-shell \
+RUN dnf install -y noctalia-legacy \
     && dnf clean all \
     && rm -rf /var/cache/libdnf5 /var/cache/dnf
 
 # Guard: erfolgreicher dnf-Exit-Code ist KEIN Beweis der Installation
 # (Obsoletes-Umleitung, siehe terra-obsolete-Vorfall).
-RUN rpm -q noctalia-shell
+RUN rpm -q noctalia-legacy
 
 # Der QML-Baum aus dem RPM liegt unter /etc/xdg/quickshell/ und würde bei
 # jedem `bootc switch` durch den ostree Drei-Wege-Merge laufen -- ändert
