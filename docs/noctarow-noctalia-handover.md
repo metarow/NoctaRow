@@ -5,7 +5,9 @@
 **Stand:** 2026-08-25 — Fix im Image (4.1, 4.2), Abhängigkeiten geprüft (4.3),
 Rollout-Check ergänzt (4.4), QML-Baum nach `/usr` gespiegelt (5),
 Upstream-Stand v4→v5 geprüft und Paket-Rename auf `noctalia-legacy`
-nachvollzogen (6). Alle Abschnitte abgearbeitet.
+nachvollzogen (6). Alle Abschnitte abgearbeitet. **Live auf dem ASUS
+X515JA verifiziert** ([[hosts/asus-x515ja/README|Host-Override]]) —
+mit einem Nachtrag zur Ursachendiagnose, siehe Warnkasten in Abschnitt 3.
 
 ---
 
@@ -48,6 +50,27 @@ Root-Objekt entsteht nie — der Prozess lebt, belegt den Instanznamen und
 zeichnet nichts.
 
 **Manuell verifiziert:** `qs -p /etc/xdg/quickshell/noctalia-shell` startet die Shell korrekt.
+
+> [!warning] Nachtrag vom Live-Test (25.08., ASUS X515JA)
+> Beim Rollout-Test lief durch einen Bedienfehler (`bootc switch` auf eine
+> bereits getrackte Referenz ist ein No-Op, siehe
+> [[docs/06-lenovo-yoga-deployment#Umschalten]]) versehentlich noch der
+> **alte** Build mit der Datei-Pfad-Exec-Zeile. Der ist auf einem frischen
+> Reboot sauber gestartet (Journal: `Shell Noctalia Hello!`, Plugins
+> geladen) — sichtbare Bar/Dock/Launcher, kein Absturz, keine leere Shell.
+>
+> Das stellt die obige Ursache als *alleinige* Erklärung für das
+> ursprüngliche Symptom infrage. Der Verzeichnis-Modus bleibt die korrekte,
+> offiziell empfohlene Variante und wurde inzwischen ebenfalls live
+> verifiziert (siehe 4.1), aber der exakte Auslöser des allerersten
+> Vorfalls (leere Shell, blockierter Instanzname) ist damit nicht
+> zweifelsfrei reproduziert. Wahrscheinlicher als ein struktureller
+> Datei-Modus-Bug: ein einmaliger Zustand, z. B. ein verwaister
+> Quickshell-Prozess/Socket aus einer vorherigen abgebrochenen Session, der
+> den Instanznamen blockiert hat, ohne dass ein neuer Prozess ihn
+> übernehmen konnte. Falls das Symptom erneut auftritt: zuerst
+> `pgrep -a qs` und `ls /run/user/*/quickshell/by-id/` auf Leichen prüfen,
+> bevor wieder der Datei-vs-Verzeichnis-Pfad verdächtigt wird.
 
 ### Hintergrund zu Noctalia v4
 

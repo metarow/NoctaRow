@@ -1,5 +1,12 @@
 # ASUS VivoBook X515JA (R565JA)
 
+> [!info] Live getestet, 25.08.2026
+> Gefixtes Image (`noctalia-legacy`, `/usr`-Spiegel, Verzeichnis-Modus)
+> per `bootc upgrade` + Reboot deployt und verifiziert: Bar/Dock/Launcher
+> sichtbar und funktional, Journal sauber. Details und ein Stolperstein
+> beim Rollout (`switch` vs. `upgrade`):
+> [[docs/noctarow-noctalia-handover]], [[docs/06-lenovo-yoga-deployment#Umschalten]].
+
 15,6" FHD-Panel (1920x1080), keine HiDPI-Besonderheit -- der Image-Default
 `output * scale 1` aus `/usr/share/sway/config.d/70-output.conf` passt
 bereits, deshalb **kein** `70-output.conf` in diesem Verzeichnis. Kein

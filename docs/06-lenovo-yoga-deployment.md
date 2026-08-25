@@ -42,6 +42,19 @@ bootc status
 
 Zeigt das gebootete Image, das gestagete Image und den Rollback-Stand.
 
+> [!warning] Lokaler Rebuild auf der Zielmaschine: `switch` ist ein No-Op, wenn die Referenz schon getrackt wird
+> Wenn Build- und Zielmaschine dieselbe ist (`noctarow build` → `noctarow
+> to-root` → `bootc switch --transport containers-storage
+> localhost/noctarow:44`), vergleicht `switch` nur den Referenz-String
+> (Transport + Name + Tag), nicht den Bildinhalt. Läuft die Maschine
+> bereits auf genau dieser Referenz -- etwa weil schon einmal umgeschaltet
+> wurde -- meldet `switch` **„Image specification is unchanged."** und tut
+> nichts, obwohl `to-root` frischen Inhalt nach root's Storage kopiert hat.
+> Für „gleiche Referenz, neuer Inhalt" `sudo bootc upgrade` statt `switch`
+> verwenden. `bootc status` danach zeigt eine neue `UpdateDigest`/
+> `Version`, wenn es gegriffen hat. Am ASUS X515JA reproduziert (siehe
+> [[docs/noctarow-noctalia-handover]]).
+
 ## Rollback
 
 Das ist das Argument für bootc, und es sollte einmal bewusst geübt werden:
