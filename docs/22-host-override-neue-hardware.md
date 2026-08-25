@@ -36,14 +36,21 @@ swaymsg -t get_outputs | jq -r '.[] | "\(.name)  \(.make) \(.model)  \(.current_
 
 Der Image-Default in `/usr/share/sway/config.d/70-output.conf` setzt
 `scale 1` auf allen Ausgängen — bewusst konservativ, siehe Kommentar dort.
-Passt das (Full-HD/1080p-Panel, kein HiDPI): **kein** `70-output.conf`
-anlegen, im Host-`README.md` kurz begründen, warum keins nötig ist
-(Beispiel: `hosts/asus-x515ja/README.md`).
+Passt das technisch (Full-HD/1080p-Panel, kein HiDPI): erstmal **kein**
+`70-output.conf` anlegen, im Host-`README.md` kurz begründen, warum keins
+nötig ist.
 
-Passt es nicht (HiDPI-Panel, sichtbar zu kleine oder unscharfe UI): eigenes
-`70-output.conf` nach dem Muster von `hosts/yoga920/70-output.conf`.
-Faustregel und Hintergrund zur fraktionalen Skalierung:
-[[docs/05-hidpi-und-monitore]].
+Zwei Gründe für ein eigenes `70-output.conf` trotzdem:
+
+- **HiDPI-Panel**, sichtbar zu kleine oder unscharfe UI bei `scale 1`:
+  fraktionale Skalierung nach dem Muster von `hosts/yoga920/70-output.conf`.
+  Faustregel und Hintergrund: [[docs/05-hidpi-und-monitore]].
+- **Kleines Panel, technisch aber kein HiDPI**: `scale 1` ist zwar korrekt
+  scharf, aber auf z. B. 13–15" gefühlt zu klein. Beispiel
+  `hosts/asus-x515ja/70-output.conf` (15,6" FHD, `scale 1.3` gezielt auf
+  den Panel-Output, nicht `output *`, damit ein extern angeschlossener
+  Monitor nicht mitskaliert). Das ist Geschmackssache am Gerät, nicht per
+  Formel herleitbar — vor Ort ausprobieren.
 
 ### 3. Eingabegeräte prüfen — braucht es ein `50-keyboard.conf`?
 

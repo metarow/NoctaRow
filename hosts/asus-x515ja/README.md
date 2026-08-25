@@ -7,11 +7,13 @@
 > beim Rollout (`switch` vs. `upgrade`):
 > [[docs/noctarow-noctalia-handover]], [[docs/06-lenovo-yoga-deployment#Umschalten]].
 
-15,6" FHD-Panel (1920x1080), keine HiDPI-Besonderheit -- der Image-Default
-`output * scale 1` aus `/usr/share/sway/config.d/70-output.conf` passt
-bereits, deshalb **kein** `70-output.conf` in diesem Verzeichnis. Kein
-Dock/Beamer-Szenario bekannt, deshalb auch keine `kanshi-config` -- Vorlage
-für ein Mehr-Profil-Setup: [[hosts/yoga920/kanshi-config]].
+15,6" FHD-Panel (1920x1080), kein HiDPI im technischen Sinn -- aber bei
+`scale 1` (Image-Default) auf dem kleinen 15,6"-Panel gefühlt zu klein.
+`70-output.conf` setzt `scale 1.3` auf `eDP-1` (gezielt, nicht `output *`,
+damit ein externer Monitor nicht mitskaliert). Am Gerät nachjustiert,
+2026-08-25. Kein Dock/Beamer-Szenario bekannt, deshalb noch keine
+`kanshi-config` -- Vorlage für ein Mehr-Profil-Setup:
+[[hosts/yoga920/kanshi-config]].
 
 Touchpad ist ein ELAN1200 (`04F3:309F`), Werte identisch zum Image-Default
 (`tap`, `natural_scroll`, `dwt` aktiv). `50-keyboard.conf` liegt trotzdem
@@ -44,7 +46,8 @@ Vollständiger Ablauf inkl. Entscheidungslogik (Override nötig oder nicht):
 
 `noctarow apply-host asus-x515ja` deployt die Dateien hier:
 
-- `50-keyboard.conf` → `/etc/sway/config.d/`.
+- `*.conf` → `/etc/sway/config.d/`, verdrängt die gleichnamigen Defaults
+  aus `/usr/share/sway/config.d/`.
 - `noctalia-settings.json` → `~/.config/noctalia/settings.json`. Enthält
   auch persönlichen Zustand (Wallpaper-Pfad, Farbschema, Pinned Apps) --
   nach jeder Änderung in der Noctalia-UI hier manuell nachziehen, sonst
