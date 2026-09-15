@@ -1,0 +1,164 @@
+# =====================================================================
+# Noctarow-Displaylink -- abgeleitetes Image fuer den Dozenten-PC
+#
+# Baut auf dem fertigen noctarow-Image auf (Noctalia + Overlay bereits
+# vorhanden) und legt evdi + DisplayLinkManager obendrauf. Bewusst NICHT
+# ins Basis-Containerfile gewandert -- siehe "Architekturentscheidung" in
+# docs/displaylink-evdi-sway-atomic-zusammenfassung.md:
+#   1. Nur der Dozenten-PC hat den DisplayLink-Adapter.
+#   2. Die evdi-Stage ist nicht cachefreundlich (Kernel-Drift-Risiko),
+#      baut bei jedem Base-Update komplett neu.
+#   3. Fehlerisolation: Noctalia (Repo-Pakete) und evdi (Kernel-gekoppelt,
+#      Drittanbieter) getrennt halten.
+#   4. Ein fehlender arm64-Build der COPR blockiert sonst einen
+#      kuenftigen aarch64-Zweig im gemeinsamen Containerfile.
+#
+# Stage 1 baut evdi gegen denselben Kernel, von dem auch noctarow:TAG
+# abstammt (im Basis-Containerfile passiert kein Kernel-Eingriff, beide
+# Stages sind also kernel-konsistent).
+# Stage 2 spielt nur das fertige Modul + den Daemon ins noctarow-Image --
+# ohne Build-Toolchain und ohne Kernel-Upgrade.
+#
+# Build:  podman build -f Containerfile.displaylink -t localhost/noctarow-displaylink:44 .
+#         (setzt localhost/noctarow:44 voraus, siehe `noctarow build`)
+#
+# Details, Diagnose und die sechs dokumentierten Stolpersteine:
+# docs/displaylink-evdi-sway-atomic-zusammenfassung.md
+# =====================================================================
+
+ARG FEDORA_MAJOR=44
+
+# =====================================================================
+# Stage 1 -- evdi gegen den Image-Kernel bauen
+# =====================================================================
+FROM quay.io/fedora-ostree-desktops/sway-atomic:${FEDORA_MAJOR} AS evdi-builder
+
+RUN set -eux; \
+    KVER=$(rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' kernel-core); \
+    echo ">>> Kernel im Base-Image: ${KVER}"; \
+    \
+    dnf install -y dnf-plugins-core; \
+    dnf copr enable -y crashdummy/Displaylink; \
+    \
+    # Build-Toolchain. Kernel-Pakete ausschliessen, damit KVER gueltig bleibt.
+    dnf install -y \
+        --setopt=exclude='kernel,kernel-core,kernel-modules*' \
+        "kernel-devel-${KVER}" \
+        gcc make dkms elfutils-libelf-devel; \
+    \
+    # displaylink ohne Scriptlets: %post ruft systemctl/udevadm,
+    # beides scheitert im Build-Container zwangslaeufig.
+    dnf install -y --setopt=tsflags=noscripts displaylink; \
+    \
+    # Ohne %post fehlt das 'dkms add' -- nachholen.
+    dkms add evdi/1.15.0 || true; \
+    dkms status; \
+    dkms install evdi/1.15.0 -k "${KVER}"; \
+    \
+    # Kompression kann .ko oder .ko.xz sein -- nicht auf einen Namen festlegen.
+    mkdir -p /out; \
+    find "/lib/modules/${KVER}" -name 'evdi.ko*' -exec cp -a {} /out/ \; ; \
+    test -n "$(ls -A /out)"
+
+# =====================================================================
+# Stage 2 -- noctarow-Image + evdi/DisplayLink
+# =====================================================================
+FROM localhost/noctarow:${FEDORA_MAJOR}
+
+# ---------------------------------------------------------------------
+# Kernel des Base-Image ist verbindlich. Ein Kernel-Upgrade hier wuerde
+# evdi verwaisen lassen (Modul liegt unter .../modules/<alt>/extra,
+# System bootet <neu>). Ab hier scheitert jeder dnf-Aufruf, der den
+# Kernel anfassen will -- laut.
+# ---------------------------------------------------------------------
+RUN printf 'exclude=kernel,kernel-core,kernel-modules*,kernel-devel*\n' \
+      >> /etc/dnf/dnf.conf
+
+# ---------------------------------------------------------------------
+# 1. DisplayLinkManager-Daemon (proprietaer)
+#
+# Bewusst 'rpm -i --nodeps --noscripts' statt 'dnf install':
+#   --nodeps    verhindert die Kette dkms -> kernel-devel-matched -> Kernel-Upgrade
+#               und haelt gcc/dkms/kernel-devel aus dem Runtime-Image
+#   --noscripts %post startet den Dienst und triggert udev -- im Build unmoeglich
+# Der DKMS-Baum wird zur Laufzeit nicht gebraucht, das Modul ist vorgebaut.
+# ---------------------------------------------------------------------
+RUN set -eux; \
+    dnf install -y dnf-plugins-core; \
+    dnf copr enable -y crashdummy/Displaylink; \
+    dnf download --destdir=/tmp/dl displaylink; \
+    \
+    # dnf laedt auch das .src.rpm mit -- gezielt nur das Binaerpaket nehmen.
+    # Kein '*.x86_64.rpm', damit der Block arch-agnostisch bleibt.
+    PKG=$(find /tmp/dl -name 'displaylink-*.rpm' ! -name '*.src.rpm' | head -1); \
+    test -n "$PKG"; \
+    echo ">>> Paket: $PKG"; \
+    \
+    rpm -i --nodeps --noscripts "$PKG"; \
+    rm -rf /tmp/dl; \
+    \
+    dnf clean all; \
+    rm -rf /var/cache/libdnf5 /var/cache/dnf /var/log/dnf5.log /run/dnf
+
+# Kernel darf sich bis hierher nicht geaendert haben.
+RUN set -eux; \
+    test "$(rpm -qa kernel-core | wc -l)" -eq 1; \
+    rpm -q kernel-core
+
+# ---------------------------------------------------------------------
+# 2. evdi-Modul -- bewusst NACH dem Daemon, damit kein spaeterer
+#    Paket-Layer den Modulbaum unter dem Modul wegziehen kann.
+# ---------------------------------------------------------------------
+COPY --from=evdi-builder /out/ /tmp/evdi/
+
+RUN set -eux; \
+    KVER=$(rpm -q --queryformat '%{VERSION}-%{RELEASE}.%{ARCH}' kernel-core); \
+    mkdir -p "/usr/lib/modules/${KVER}/extra"; \
+    cp -a /tmp/evdi/evdi.ko* "/usr/lib/modules/${KVER}/extra/"; \
+    depmod -a "${KVER}"; \
+    rm -rf /tmp/evdi; \
+    \
+    # Echter Check ohne Pipe -- der Exit-Status ist der von modinfo.
+    modinfo -k "${KVER}" evdi > /dev/null; \
+    echo ">>> evdi registriert fuer ${KVER}:"; \
+    modinfo -k "${KVER}" evdi | head -n 3
+
+# evdi frueh laden. Streng genommen redundant -- die Unit macht
+# ExecStartPre=/sbin/modprobe evdi -- aber robuster gegen Timing.
+RUN printf 'evdi\n' > /usr/lib/modules-load.d/70-noctarow-evdi.conf
+
+# ---------------------------------------------------------------------
+# 3. Daemon-Aktivierung verifizieren
+#
+# KEIN 'systemctl enable': displaylink-driver.service hat keine
+# [Install]-Sektion. Der Dienst wird udev-aktiviert
+# (99-displaylink.rules -> udev.sh) beim Anstecken eines 17e9-Geraets.
+# ---------------------------------------------------------------------
+RUN set -eux; \
+    test -f /usr/lib/systemd/system/displaylink-driver.service; \
+    test -f /etc/udev/rules.d/99-displaylink.rules; \
+    test -x /usr/libexec/displaylink/udev.sh; \
+    test -x /usr/libexec/displaylink/DisplayLinkManager
+
+# ---------------------------------------------------------------------
+# 4. Sway mit --unsupported-gpu starten
+#
+# /usr/share/wayland-sessions/sway.desktop ruft 'start-sway' auf, nicht
+# sway direkt. start-sway (aus sway-systemd) sourct /etc/sway/environment
+# und haengt $SWAY_EXTRA_ARGS unquoted an den exec-Aufruf an.
+#
+# Append-Form statt Zuweisung, falls environment.noctarow (oder ein
+# spaeterer Layer) SWAY_EXTRA_ARGS bereits setzt -- aktuell setzt es die
+# Datei nicht, aber so ueberschreibt kein Layer den anderen still.
+# ---------------------------------------------------------------------
+RUN set -eux; \
+    printf 'SWAY_EXTRA_ARGS="$SWAY_EXTRA_ARGS --unsupported-gpu"\n' \
+      >> /etc/sway/environment; \
+    grep -q 'unsupported-gpu' /etc/sway/environment
+
+RUN bootc container lint
+
+LABEL org.opencontainers.image.title="Noctarow-Displaylink" \
+      org.opencontainers.image.description="Noctarow + evdi/DisplayLink fuer den Dozenten-PC" \
+      org.opencontainers.image.vendor="MetaRow Software UG" \
+      containers.bootc="1"

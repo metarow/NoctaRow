@@ -148,6 +148,7 @@ journalctl --user -u kanshi -n 20
 |---|---|---|---|
 | Yoga 920 | x86_64 | `stable` | `hosts/yoga920` |
 | ASUS VivoBook X515JA | x86_64 | `44` (lokal) | `hosts/asus-x515ja` |
+| Dozenten-PC (DisplayLink) | x86_64 | `44-displaylink` (lokal) | `hosts/dozenten-pc` |
 | Schulungs-PCs Intel/AMD | x86_64 | `stable` | noch anzulegen |
 | Schulungs-PCs NVIDIA | x86_64 | `stable-nvidia` | eigener Build |
 

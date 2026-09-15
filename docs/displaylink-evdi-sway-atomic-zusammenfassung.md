@@ -106,6 +106,17 @@ sudo podman run --rm localhost/noctarow:evdi-test rpm -qa | lines | find kernel-
 
 Alle grün → Switch, Reboot, `swaymsg -t get_outputs` → dritter Monitor.
 
+> [!note] Gegen `localhost/noctarow-displaylink:44` verifiziert (2026-09-08)
+> evdi registriert für `kernel-core` des Images, `DisplayLinkManager` ohne
+> fehlende Libs, genau ein `kernel-core` — alle drei grün. Der
+> Toolchain-Check schlägt hier **erwartungsgemäß** an (`gcc`, `gcc-c++`,
+> `kernel-devel` sind vorhanden): Das kommt nicht aus dieser Schicht,
+> sondern aus dem Basis-Image selbst (`noctarow:44` installiert bewusst
+> eine Compiler-Toolchain für den Homebrew-Bootstrap, siehe
+> [[15-noctarow-basis-image]]). Kein Kernel-Drift-Risiko dadurch — die
+> `kernel-core`-Version im Basis-Image war schon vor dieser Schicht
+> gesetzt und stimmt mit der evdi-Build-`KVER` überein.
+
 > [!note] `--unsupported-gpu` ist der Upstream-Weg
 > Fedoras `/etc/sway/environment` führt genau dieses Flag als auskommentiertes Beispiel. Der Weg über `SWAY_EXTRA_ARGS` (von `start-sway` gesourct) ist also vorgesehen – die RPM-eigene `sway.desktop` bleibt unangetastet.
 > Beim Merge ins echte Containerfile die **Append-Form** nutzen (`"$SWAY_EXTRA_ARGS --unsupported-gpu"`) statt der Zuweisung, damit spätere Argumente nicht still überschrieben werden.
@@ -117,7 +128,7 @@ Alle grün → Switch, Reboot, `swaymsg -t get_outputs` → dritter Monitor.
 - [ ] **foot startet nicht** im Testimage. Vermutlich nur fehlende `foot.ini` (das Testimage ist das nackte `sway-atomic:44` ohne deine Configs). Prüfen: `foot` aus laufender Session starten, `journalctl -b --user -t foot`. Startet `foot -f monospace:size=12`, ist es die Config.
 - [ ] **`WLR_DRM_DEVICES`** – im Live-Test mitgegeben, im Image nur `--unsupported-gpu`. Bisher nicht nötig gewesen; falls Sway den Node je ignoriert, der nächste Hebel.
 - [ ] **Secure Boot** – im Test aus. Der Build-MOK ist dem Rechner unbekannt; bei aktivem Secure Boot lädt evdi nicht. Saubere Lösung: eigener Signing-Key + MOK-Enrollment (bündelbar mit cosign).
-- [ ] **`environment.noctarow`-Kollision** – wird die projekteigene Datei nach `/etc/sway/environment` kopiert, überschreibt sie das `RUN printf` still. Beim Merge Reihenfolge/Zielpfad prüfen.
+- [x] **`environment.noctarow`-Kollision** – geprüft: `overlay/usr/share/noctarow/environment.noctarow` setzt `SWAY_EXTRA_ARGS` nicht, keine Kollision. `Containerfile.displaylink` hängt trotzdem in Append-Form an (`SWAY_EXTRA_ARGS="$SWAY_EXTRA_ARGS --unsupported-gpu"`), damit ein künftiger Layer nichts still überschreibt.
 
 ## Architekturentscheidung: evdi gehört NICHT ins Basis-Image
 
@@ -129,6 +140,15 @@ Alle grün → Switch, Reboot, `swaymsg -t get_outputs` → dritter Monitor.
 > 4. **aarch64-Killer:** Ob `crashdummy/Displaylink` für arm64 baut, ist offen. Im gemeinsamen Basis-Containerfile würde ein fehlender arm64-Build einen **künftigen aarch64-Zweig blockieren**, sollte je eine solche Plattform dazukommen (siehe [[docs/04-quay-veroeffentlichung#Multi-Arch: aktuell zurückgestellt]]).
 >
 > → eigenes `noctarow-displaylink:latest` (x86_64-only), das `FROM noctarow:latest` ableitet und nur der Dozenten-PC zieht. Passt zur bestehenden `hosts/`-Trennung. Reihenfolge im Projekt: **erst Noctalia ins Basis-Image, dann diese abgeleitete Variante.**
+
+> [!success] Umgesetzt (2026-09-08)
+> Noctalia ist im Basis-Image, der Dozenten-PC läuft bereits darauf
+> (`rpm-ostree status` zeigt `noctarow:44-amd64` als gebootetes
+> Deployment). Die abgeleitete Variante liegt jetzt als
+> `Containerfile.displaylink` im Repo (`FROM localhost/noctarow:44`),
+> Build/Rollout über `noctarow build-displaylink` +
+> `noctarow to-root --image noctarow-displaylink`. Host-Override:
+> [[hosts/dozenten-pc/README|hosts/dozenten-pc]].
 
 ---
 

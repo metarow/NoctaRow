@@ -14,6 +14,7 @@
 # liegen -- dafuer gibt es `noctarow to-root`.
 
 const IMAGE = "quay.io/metarow/noctarow"
+const IMAGE_DISPLAYLINK = "quay.io/metarow/noctarow-displaylink"
 const BASE  = "quay.io/fedora-ostree-desktops/sway-atomic"
 const WSLG_SOCKET = "/mnt/wslg/runtime-dir/wayland-0"
 
@@ -140,6 +141,37 @@ export def "noctarow images" [] {
     (do $zeilen $rootless "rootless") ++ (do $zeilen $root "root")
 }
 
+# Baut das abgeleitete evdi/DisplayLink-Image fuer den Dozenten-PC.
+# Setzt voraus, dass `localhost/noctarow:<tag>` bereits gebaut ist.
+export def "noctarow build-displaylink" [
+    --tag (-t): string = "44"
+    --no-cache
+] {
+    let arch = (oci-arch)
+    let basis = $"localhost/noctarow:($tag)"
+
+    if (^podman image exists $basis | complete | get exit_code) != 0 {
+        error make { msg: $"($basis) fehlt -- erst `noctarow build --tag ($tag)`." }
+    }
+
+    let full = $"($IMAGE_DISPLAYLINK):($tag)-($arch)"
+
+    mut args = [
+        build
+        -f Containerfile.displaylink
+        --tag $full
+        --build-arg $"FEDORA_MAJOR=($tag)"
+    ]
+    if $no_cache { $args = ($args | append "--no-cache") }
+    $args = ($args | append ".")
+
+    print $"(ansi cyan)→ ($full)  \(Basis: ($basis)\)(ansi reset)"
+    ^podman ...$args
+
+    podman tag $full $"localhost/noctarow-displaylink:($tag)"
+    print $"(ansi green)fertig:(ansi reset) ($full)  +  localhost/noctarow-displaylink:($tag)"
+}
+
 # --- Test -------------------------------------------------------------------
 
 # Startet Sway aus dem Image als Fenster in der laufenden Wayland-Session.
@@ -209,11 +241,15 @@ export def "noctarow output-check" [] {
 # das Image liegt also in ~/.local/share/containers/storage.
 #
 # Achtung: das Image liegt danach ZWEIMAL auf der Platte (~6 GB je Kopie).
-export def "noctarow to-root" [--tag (-t): string = "44"] {
-    let lokal = $"localhost/noctarow:($tag)"
+export def "noctarow to-root" [
+    --tag (-t): string = "44"
+    --image: string = "noctarow"    # z.B. "noctarow-displaylink"
+] {
+    let lokal = $"localhost/($image):($tag)"
 
+    let baubefehl = if $image == "noctarow-displaylink" { "noctarow build-displaylink" } else { "noctarow build" }
     if (^podman image exists $lokal | complete | get exit_code) != 0 {
-        error make { msg: $"($lokal) liegt nicht im rootless Storage. Erst `noctarow build --tag ($tag)`." }
+        error make { msg: $"($lokal) liegt nicht im rootless Storage. Erst `($baubefehl) --tag ($tag)`." }
     }
 
     print $"(ansi cyan)($lokal): rootless → root ...(ansi reset)"
@@ -279,9 +315,13 @@ export def "noctarow disk" [--tag (-t): string = "44"] {
 # --- Publish ----------------------------------------------------------------
 
 # Pusht das arch-spezifische Image. Login vorher manuell: `podman login quay.io`
-export def "noctarow push" [--tag (-t): string = "44"] {
+export def "noctarow push" [
+    --tag (-t): string = "44"
+    --image: string = "noctarow"    # z.B. "noctarow-displaylink"
+] {
     let arch = (oci-arch)
-    let full = $"($IMAGE):($tag)-($arch)"
+    let registry = if $image == "noctarow-displaylink" { $IMAGE_DISPLAYLINK } else { $IMAGE }
+    let full = $"($registry):($tag)-($arch)"
     print $"(ansi yellow)Push: ($full)(ansi reset)"
     podman push $full
 }
