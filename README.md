@@ -24,11 +24,13 @@ Betreiber: MetaRow Software UG
 
 | Pfad | Zweck |
 |---|---|
-| `Containerfile` | Image-Definition |
+| `Containerfile` | Basis-Image-Definition |
+| `Containerfile.displaylink` | abgeleitetes Image `FROM noctarow:44` mit evdi + DisplayLinkManager — nur für den Dozenten-PC, siehe `docs/23-displaylink-evdi-dozenten-pc.md` |
 | `terra.repo` | gevendorte Terra-Repo-Datei (Quelle für Noctalia) |
 | `overlay/` | spiegelt das Image 1:1, `COPY overlay/ /` im Build — Sway-Drop-ins, foot-Default, SDDM/vconsole, tmpfiles, Homebrew-Bootstrap (systemd-User-Unit + Skript), Terminal-Shell-Wrapper |
-| `hosts/yoga920/` | hostspezifische Overrides (Output, Tastatur, kanshi) |
-| `scripts/` | noctarow.nu (Build/Test/Push) |
+| `hosts/<name>/` | hostspezifische Overrides (Output, Tastatur, kanshi, Noctalia-Settings), per `noctarow apply-host <name>` — aktuell `yoga920`, `asus-x515ja`, `dozenten-pc` |
+| `scripts/` | noctarow.nu (Build/Test/Push, `build-displaylink` für die abgeleitete Variante) |
+| `docs/` | Projektnotizen, Index in `docs/README.md` |
 
 ## Grundsätze
 

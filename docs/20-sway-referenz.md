@@ -462,7 +462,7 @@ klein anfangen mit Vosk, später Whisper — ohne Architekturänderung.
 
 ## 9 · Zugänglichkeit
 
-Details in [[17-zugaenglichkeitsprofil-senioren]]; hier nur die
+Details im Zugänglichkeitsprofil Senioren (Notiz im Coaching-Vault, nicht in diesem Repo); hier nur die
 Sway-spezifische Substanz.
 
 **Der größte Teil liegt nicht im Compositor.** GTK und Qt legen ihren

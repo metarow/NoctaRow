@@ -1,6 +1,6 @@
 ---
 titel: Noctalia per rpm-ostree-Layering — Installation, Start, Rückbau
-teil_von: "[[Noctarow]]"
+teil_von: "[[README]]"
 tags: [noctarow, noctalia, rpm-ostree, layering, waybar, bash, exploration]
 zielgeraet: Fedora Atomic (Sway bzw. Hyprland)
 erstellt: 2026-08-02

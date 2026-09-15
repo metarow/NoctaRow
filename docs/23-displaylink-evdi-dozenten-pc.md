@@ -4,11 +4,11 @@ aliases: [DisplayLink evdi, USB-Monitor Sway Atomic, evdi bootc]
 tags: [fedora, sway-atomic, bootc, displaylink, evdi, wlroots, akmod, dozenten-pc, noctarow]
 zielgeraet: Dozenten-PC (Ivy-Bridge Intel iGPU, x86_64)
 erstellt: 2026-07-15
-verifiziert_am: 2026-07-15
+verifiziert_am: 2026-09-15
 status: verifiziert
 ---
 
-# DisplayLink-Monitor unter Fedora Sway Atomic (evdi) – Ergebnis
+# 23 — DisplayLink-Monitor unter Fedora Sway Atomic (evdi) – Ergebnis
 
 > [!success] Ergebnis
 > Dritter Monitor per DisplayLink läuft unter Fedora Sway Atomic 44 auf einem selbstgebauten bootc-Image. `bootc switch` → Reboot → Monitor erkannt → System stabil. Der wlroots/evdi-Weg, der historisch als fragil gilt, funktioniert auf **reiner Intel-Grafik** mit dem Flag `--unsupported-gpu`.
@@ -149,6 +149,11 @@ Alle grün → Switch, Reboot, `swaymsg -t get_outputs` → dritter Monitor.
 > Build/Rollout über `noctarow build-displaylink` +
 > `noctarow to-root --image noctarow-displaylink`. Host-Override:
 > [[hosts/dozenten-pc/README|hosts/dozenten-pc]].
+>
+> **Live verifiziert 2026-09-15** nach `bootc switch` + Reboot auf dem
+> Dozenten-PC: Kernel `7.1.13-200.fc44`, `evdi` geladen,
+> `displaylink-driver.service` aktiv, drei Outputs (`DVI-I-1` via evdi,
+> `HDMI-A-1`, `VGA-1`), alle 1920×1080.
 
 ---
 

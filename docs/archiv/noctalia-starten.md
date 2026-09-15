@@ -131,11 +131,10 @@ ps | where name =~ "qs" or name =~ "quickshell"
 
 ## Verwandte Notizen
 
-> [!note] Querverweise ggf. an tatsächliche Dateinamen anpassen
-> Die folgenden Wikilinks sind aus dem Kontext abgeleitet und können abweichen:
-> - [[02-nushell-konfigurieren]]
-> - [[Hyprland konfigurieren]]
-> - [[Noctalia integrieren]]
+> [!note] Verweise in den Hyprland-Vault
+> „Nushell konfigurieren", „Hyprland konfigurieren" und „Noctalia
+> integrieren" liegen im Hyprland-Vault, nicht in diesem Repo. Für den
+> Noctarow-Stand: [[docs/16-erkenntnisse-noctalia-container]].
 
 ## Aufgaben
 

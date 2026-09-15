@@ -39,18 +39,27 @@ HiDPI-Unterstützung. Gebaut für die Schulungsflotte der MetaRow Software UG.
 - [[docs/20-sway-referenz|20 — Sway-Referenz]]
 - [[docs/21-sway-titelleiste-ausblenden|21 — Sway-Titelleiste ausblenden]]
 - [[docs/22-host-override-neue-hardware|22 — Host-Override für neue Hardware anlegen]]
-- [[docs/displaylink-evdi-sway-atomic-zusammenfassung|DisplayLink/evdi auf Sway Atomic — Ergebnis]]
+- [[docs/23-displaylink-evdi-dozenten-pc|23 — DisplayLink/evdi: abgeleitetes Image für den Dozenten-PC]]
+- [[docs/24-noctarow-noctalia-handover|24 — Noctalia startet nicht: Diagnose, Fix, Rollout-Falle]]
 
-### Weitere Referenzen (Hyprland-Vorläufer, technisch weiter gültig)
+Lücken in der Nummerierung (02, 08, 11, 17) sind historisch und bleiben —
+ein Umsortieren bräche Links und Git-Historie ohne Gewinn.
 
-- [[docs/01-nushell-installieren|Nushell installieren — generischer Fedora-Spickzettel]]
-- [[docs/Noctalia starten|Noctalia starten — Quickshell-IPC, Runner-Kopplung]]
+### Archiv (Hyprland-Vorläufer, technisch weiter gültig)
+
+- [[docs/archiv/nushell-installieren|Nushell installieren — generischer Fedora-Spickzettel]]
+- [[docs/archiv/noctalia-starten|Noctalia starten — Quickshell-IPC, Runner-Kopplung]]
+
+Beide Notizen stammen aus der Zeit vor der Sway-Entscheidung. Ihre
+Querverweise zeigen in den Hyprland-Vault und sind hier als Klartext
+belassen.
 
 ## Verzeichnisstruktur
 
 ```
 noctarow/
-├── Containerfile               # COPY overlay/ / -- spiegelt das Image 1:1
+├── Containerfile               # Basis-Image; COPY overlay/ / -- spiegelt das Image 1:1
+├── Containerfile.displaylink   # abgeleitet FROM noctarow:44, evdi + DisplayLinkManager (nur Dozenten-PC)
 ├── terra.repo                  # gevendort, excludepkgs=terra-obsolete
 ├── overlay/
 │   ├── etc/xdg/foot/foot.ini           # shell=Terminal-Wrapper, font erhalten
@@ -68,11 +77,15 @@ noctarow/
 │       └── libexec/noctarow/
 │           ├── homebrew-bootstrap.sh   # Installer + nushell/helix via brew
 │           └── terminal-shell          # Wrapper: nu aus brew, sonst bash
-├── hosts/                      # maschinenspezifisch → /etc/sway/config.d/
-│   └── yoga920/
+├── hosts/                      # maschinenspezifisch → /etc/sway/config.d/, per `noctarow apply-host <name>`
+│   ├── yoga920/                # 4K-Laptop, scale 1.5, kanshi-Profile
+│   ├── asus-x515ja/            # 15,6" FHD, scale 1.3
+│   └── dozenten-pc/            # Desktop, DisplayLink -> laeuft auf noctarow-displaylink
 ├── scripts/
-│   └── noctarow.nu             # Build/Test/Push, nativ auf dem Yoga
+│   └── noctarow.nu             # build / build-displaylink / test-nested / to-root / push / apply-host
 └── docs/
+    ├── 01 … 24                 # Projektnotizen, nummeriert (Luecken historisch)
+    └── archiv/                 # Hyprland-Vorlaeufer
 ```
 
 ## Einrichtung

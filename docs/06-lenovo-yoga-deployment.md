@@ -53,7 +53,7 @@ Zeigt das gebootete Image, das gestagete Image und den Rollback-Stand.
 > Für „gleiche Referenz, neuer Inhalt" `sudo bootc upgrade` statt `switch`
 > verwenden. `bootc status` danach zeigt eine neue `UpdateDigest`/
 > `Version`, wenn es gegriffen hat. Am ASUS X515JA reproduziert (siehe
-> [[docs/noctarow-noctalia-handover]]).
+> [[docs/24-noctarow-noctalia-handover]]).
 
 ## Rollback
 

@@ -17,12 +17,12 @@ status: im-container-verifiziert
 > ersten Noctalia-Image-Durchlauf auf dem Yoga (x86_64). `01` ist gegen
 > aarch64/WSL verifiziert; diese Note ergänzt x86_64-native und
 > Noctalia-spezifische Erkenntnisse. Der Ablauf und das Containerfile stehen in
-> [[Noctalia im Noctarow-Image – Containerfile und Ablauf]].
+> [[docs/15-noctarow-basis-image]].
 
-> [!warning] Numerierungskollision
-> Die Containerfile-Note wurde versehentlich als `11` angelegt — `11` ist aber
-> [[docs/11-kvm-windows11-vm]]. Vorschlag: Containerfile-Note → `15`, diese Note
-> → `16`. Dateinamen entsprechend anpassen.
+> [!note] Numerierung (erledigt)
+> Die Containerfile-Note war ursprünglich als `11` angelegt und kollidierte
+> mit einer gleichnummerierten Notiz aus einem anderen Vault. Aufgelöst:
+> Containerfile-Note ist `15`, diese Note `16`.
 
 ## Noctalia & quickshell
 
@@ -334,4 +334,4 @@ not permitted" nicht raten, sondern isolieren.
 
 - [[docs/01-erkenntnisse]]
 - [[docs/09-yoga-buildumgebung]]
-- [[Noctalia im Noctarow-Image – Containerfile und Ablauf]]
+- [[docs/15-noctarow-basis-image]]

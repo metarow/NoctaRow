@@ -7,7 +7,7 @@
 > Image `quay.io/metarow/noctarow-displaylink`, gebaut aus
 > `Containerfile.displaylink` (`FROM noctarow:44`), nicht im Basis-Image.
 > Architekturentscheidung, Diagnose und alle Stolpersteine:
-> [[docs/displaylink-evdi-sway-atomic-zusammenfassung]].
+> [[docs/23-displaylink-evdi-dozenten-pc]].
 >
 > `noctarow apply-host dozenten-pc` liefert nur die Sway-Configs dieses
 > Geräts. Der Umstieg auf das abgeleitete Image ist ein eigener Schritt:
@@ -38,11 +38,15 @@ cat /sys/devices/virtual/dmi/id/board_name      # P8B75-V
 lsusb | grep -i 17e9
 # -> Bus 003 Device 002: ID 17e9:4301 DisplayLink USB3 to HDMI
 
-# Ausgabe (aktuell nur der Onboard-HDMI-Port -- der DisplayLink-Adapter
-# liefert erst nach dem Umstieg auf noctarow-displaylink einen eigenen
-# Output, siehe [[docs/displaylink-evdi-sway-atomic-zusammenfassung]])
+# Ausgabe. Auf dem Basis-Image nur der Onboard-HDMI-Port; nach dem Umstieg
+# auf noctarow-displaylink (2026-09-15 verifiziert) drei aktive Outputs --
+# evdi legt card1..card4 an, der DisplayLink-Monitor erscheint als DVI-I-1.
 swaymsg -t get_outputs | jq -r '.[] | "\(.name)  \(.make) \(.model)  \(.current_mode.width)x\(.current_mode.height)  scale=\(.scale)"'
-# -> HDMI-A-1  HP Inc. HP 24fh  1920x1080  scale=1.0
+# -> DVI-I-1   HP Inc. HP 24fh  1920x1080  scale=1.0   (DisplayLink/evdi)
+# -> HDMI-A-1  HP Inc. HP 24fh  1920x1080  scale=1.0   (Onboard)
+# -> VGA-1     HP Inc. HP 24fh  1920x1080  scale=1.0   (Onboard)
+lsmod | grep evdi                                   # evdi geladen
+systemctl is-active displaylink-driver.service      # active
 
 # Eingabegeräte
 swaymsg -t get_inputs | jq -r '.[] | "\(.identifier)  type=\(.type)"'

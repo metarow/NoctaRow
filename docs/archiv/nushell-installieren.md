@@ -134,7 +134,7 @@ Foot (`~/.config/foot/foot.ini`):
 shell=/usr/bin/nu
 ```
 
-> [!note] Diese Terminal-Configs gehören thematisch in die jeweilige Terminal-Notiz – siehe [[Terminal-Emulator einrichten]].
+> [!note] Diese Terminal-Configs gehören thematisch in die jeweilige Terminal-Notiz – siehe „Terminal-Emulator einrichten" im Hyprland-Vault (nicht in diesem Repo). Für Noctarow: `overlay/etc/xdg/foot/foot.ini`.
 
 ### Alternative: Login-Shell via `chsh`
 
@@ -166,9 +166,10 @@ open /etc/shells | lines | where $it =~ "nu"
 
 ## Nächste Schritte
 
-- [[02-nushell-konfigurieren]] – `config.nu`, `env.nu`, Aliase, Prompt
-- [[Terminal-Emulator einrichten]]
-- [[Hyprland installieren]]
+Die Folgenotizen „Nushell konfigurieren" (`config.nu`, `env.nu`, Aliase,
+Prompt), „Terminal-Emulator einrichten" und „Hyprland installieren" liegen
+im Hyprland-Vault, nicht in diesem Repo. Für Noctarow weiter mit
+[[docs/15-noctarow-basis-image]].
 
 ---
 

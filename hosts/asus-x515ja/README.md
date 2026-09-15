@@ -5,7 +5,7 @@
 > per `bootc upgrade` + Reboot deployt und verifiziert: Bar/Dock/Launcher
 > sichtbar und funktional, Journal sauber. Details und ein Stolperstein
 > beim Rollout (`switch` vs. `upgrade`):
-> [[docs/noctarow-noctalia-handover]], [[docs/06-lenovo-yoga-deployment#Umschalten]].
+> [[docs/24-noctarow-noctalia-handover]], [[docs/06-lenovo-yoga-deployment#Umschalten]].
 
 15,6" FHD-Panel (1920x1080), kein HiDPI im technischen Sinn -- aber bei
 `scale 1` (Image-Default) auf dem kleinen 15,6"-Panel gefühlt zu klein.

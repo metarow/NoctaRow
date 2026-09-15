@@ -209,7 +209,7 @@ bleibt für lokale Übersteuerungen frei.
 
 ## Compositor-Neutralität
 
-Für [[docs/16-sway-vs-hyprland]] relevant: Hyprland implementiert XDG-Autostart
+Für die Sway-vs-Hyprland-Abwägung (Notiz im Coaching-Vault, nicht in diesem Repo) relevant: Hyprland implementiert XDG-Autostart
 ebenfalls nicht; dort ist `exec-once` das native Mittel. Der **User-Unit-Weg
 ist der einzige, der beide Compositor abdeckt** — es ändert sich nur der
 Zielname im `WantedBy`. Das spricht dafür, Autostart in `policy.nuon` als
@@ -226,7 +226,7 @@ Datenzeile zu führen und das Target beim Rendern einzusetzen, statt
 - [ ] Entscheidung dedizierte Unit vs. `xdg-desktop-autostart.target` festhalten
 - [ ] Nach Entscheidung: Unit + Symlink ins Containerfile promoten
 - [ ] Autostart-Einträge als Feld in `policy.nuon` vorsehen
-- [ ] Zusammenspiel mit [[docs/12-dateifreigabe-host-gast]]: der Host-Client
+- [ ] Zusammenspiel mit der Dateifreigabe Host/Gast (KVM-Notiz im Coaching-Vault, nicht in diesem Repo): der Host-Client
       muss laufen, sonst schreibt der Windows-Gast in einen toten Baum
 
 ## Kernaussagen in vier Sätzen

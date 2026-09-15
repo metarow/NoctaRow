@@ -1,4 +1,12 @@
-# Noctarow: Noctalia startet nicht — Diagnose & offene Aufgaben
+---
+titel: Noctalia startet nicht — Diagnose, Fix, Rollout-Falle
+teil_von: "[[README]]"
+tags: [noctarow, noctalia, quickshell, diagnose, bootc, handover]
+erstellt: 2026-08-25
+status: abgeschlossen
+---
+
+# 24 — Noctalia startet nicht: Diagnose, Fix, Rollout-Falle
 
 **Projekt:** Noctarow (bootc-Image, Fedora Sway Atomic 44 + Noctalia + Homebrew-Toolchain)
 **Repo-Artefakte:** `Containerfile`, `terra.repo`, `overlay/`, `scripts/noctarow.nu`
