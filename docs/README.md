@@ -5,7 +5,7 @@ firma: MetaRow Software UG
 basis: quay.io/fedora-ostree-desktops/sway-atomic:44
 registry: quay.io/metarow/noctarow
 architekturen: [x86_64]
-status: in Entwicklung
+status: im Betrieb auf zwei Geraeten, Registry-Verteilung offen
 erstellt: 2026-07-09
 tags: [bootc, fedora, sway, noctalia, quickshell, nushell, homebrew]
 ---
@@ -17,7 +17,9 @@ Ein bootc-Image auf Basis von **Fedora Sway Atomic**, erweitert um die
 HiDPI-Unterstützung. Gebaut für die Schulungsflotte der MetaRow Software UG.
 
 > [!info] Namensherkunft
-> **Noct**alia + Meta**Row**. Image-Referenz: `quay.io/metarow/noctarow:44`
+> **Noct**alia + Meta**Row**. Geplante Image-Referenz:
+> `quay.io/metarow/noctarow:44`. Die Registry ist derzeit noch leer, jede
+> Maschine baut lokal — siehe [[docs/04-quay-veroeffentlichung]].
 
 ## Dokumentation
 
@@ -32,7 +34,7 @@ HiDPI-Unterstützung. Gebaut für die Schulungsflotte der MetaRow Software UG.
 - [[docs/12-noctalia-layering-explorationsweg|12 — Noctalia per rpm-ostree-Layering (Explorationsweg)]]
 - [[docs/13-leitfaden-atomic-brew-homebrew|13 — Leitfaden: bootc-Image mit Homebrew (Vorarbeit)]]
 - [[docs/14-troubleshooting-atomic-brew|14 — Troubleshooting-Log: atomic-brew]]
-- [[docs/15-noctarow-basis-image|15 — Zielarchitektur: Basis-Image mit Brew-Integration (aktiver Plan)]]
+- [[docs/15-noctarow-basis-image|15 — Basis-Image mit Brew-Integration (umgesetzt, im Betrieb)]]
 - [[docs/16-erkenntnisse-noctalia-container|16 — Erkenntnisse: Noctalia, Container, Nushell]]
 - [[docs/18-autostart-nextcloud-sway|18 — Autostart: Nextcloud unter Sway]]
 - [[docs/19-flatpak-auf-sway-atomic|19 — Flatpak auf Sway Atomic]]
@@ -90,15 +92,16 @@ noctarow/
 
 ## Einrichtung
 
-Der Yoga ist Build- **und** Zielmaschine — kein Windows-/WSL-Umweg. Login-Shell
-ist bash; `git clone` direkt auf dem Yoga:
+Jedes Flottengerät ist Build- **und** Zielmaschine — kein Cross-Build, kein
+Windows-/WSL-Umweg. Login-Shell ist bash; `git clone` direkt auf dem Gerät:
 
 ```bash
-git clone https://github.com/metarow/noctarow.git ~/projekte/noctarow
-cd ~/projekte/noctarow
+git clone https://github.com/metarow/NoctaRow.git ~/Projekte/NoctaRow
+cd ~/Projekte/NoctaRow
 ```
 
-Details zum Buildumgebungs-Setup: [[docs/09-yoga-buildumgebung]]
+Details zum Buildumgebungs-Setup: [[docs/09-yoga-buildumgebung]] (am Yoga
+protokolliert, gilt für jedes x86_64-Gerät der Flotte)
 
 ## Schnellstart
 
@@ -108,7 +111,8 @@ siehe [[docs/15-noctarow-basis-image]]) — Build-Kommandos laufen darin:
 ```nu
 use scripts/noctarow.nu *
 
-noctarow build
+noctarow build              # Basis-Image
+noctarow build-displaylink  # abgeleitete Variante, nur Dozenten-PC
 noctarow test-nested        # Sway + Noctalia in einem nested Fenster, hardwarebeschleunigt
 noctarow keyboard-check     # prüft das aktive XKB-Layout
 ```

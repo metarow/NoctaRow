@@ -120,11 +120,14 @@ Hinter `COPY overlay/ /` einfügen:
 # Guard: qs -p muss auf das Verzeichnis zeigen, nie auf shell.qml --
 # sonst startet der Prozess, scheitert an den relativen QML-Imports
 # und blockiert stumm den Instanznamen.
-RUN ! grep -rq "noctalia-shell/shell.qml" /etc/sway/ \
+RUN ! grep -rq "noctalia-shell/shell.qml" /usr/share/sway/ \
     && test -f /etc/xdg/quickshell/noctalia-shell/shell.qml
 ```
 
-Der bestehende Guard `RUN rpm -q noctalia-shell` bleibt, deckt aber nur den
+Der Grep zielt auf `/usr/share/sway/`, weil die exec-Zeile dort liegt
+(`overlay/usr/share/sway/config.d/95-noctalia.conf`), nicht unter `/etc`.
+
+Der bestehende Guard `RUN rpm -q noctalia-legacy` bleibt, deckt aber nur den
 RPM-DB-Eintrag ab — nicht die Payload und nicht den Startpfad.
 
 ### 4.3 Optionale Abhängigkeiten prüfen — erledigt, kein Fix nötig

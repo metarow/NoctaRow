@@ -3,9 +3,10 @@ titel: Noctarow-Basis-Image — atomic-brew als Ausgangspunkt
 aliases: [Basis-Image-Entwurf, atomic-brew-Merge]
 teil_von: "[[README]]"
 tags: [bootc, podman, homebrew, sway, noctalia, nushell, terra, containerfile, bash]
-zielgeraet: Lenovo Yoga 920-13IKB (x86_64) — erste und aktuell einzige Plattform für das Basis-Image
+zielgeraet: x86_64-Flotte (Yoga 920, ASUS X515JA, Dozenten-PC)
 erstellt: 2026-08-02
-status: umgesetzt, sudo-Build erfolgreich — bootc switch steht noch aus
+verifiziert_am: 2026-09-15
+status: im Betrieb — ausgerollt auf ASUS X515JA und Dozenten-PC
 ---
 
 # 15 — Noctarow-Basis-Image: atomic-brew + Noctarow-Konfiguration
@@ -14,7 +15,7 @@ status: umgesetzt, sudo-Build erfolgreich — bootc switch steht noch aus
 > Repo-Root-`Containerfile` und `overlay/`-Baum entsprechen jetzt exakt dieser
 > Note. Rootless auf dem Yoga gebaut (`podman build`, kein `sudo`) und
 > gegengeprüft:
-> - `rpm -q noctalia-shell` → installiert
+> - `rpm -q noctalia-shell` → installiert (heute: `noctalia-legacy`, Terra-Rename)
 > - `rpm -q nushell helix` im Image → **beide nicht installiert** (korrekt,
 >   kommen per Brew)
 > - Overlay-Skripte ausführbar, `foot.ini` zeigt auf den Terminal-Wrapper,
@@ -40,9 +41,22 @@ status: umgesetzt, sudo-Build erfolgreich — bootc switch steht noch aus
 > Yoga vollständig durch (alle 11 Schritte, `LABEL` gesetzt), Image liegt als
 > `quay.io/metarow/noctarow:44-amd64` in root's `containers-storage` — genau
 > die Voraussetzung für `bootc switch --transport containers-storage`.
-> **Noch offen:** der tatsächliche `bootc switch` + Reboot +
-> Erstlogin-Kontrolle. Das ist der Schritt, der das laufende System
-> tatsächlich umschaltet — bewusst nicht ungefragt ausgeführt.
+
+> [!success] Ausgerollt und live verifiziert (Stand 2026-09-15)
+> Der Switch ist auf zwei Geräten vollzogen:
+> - **ASUS X515JA**, 2026-08-25, per `bootc upgrade` (nicht `switch`, siehe
+>   die No-Op-Falle in [[docs/06-lenovo-yoga-deployment#Umschalten]]).
+>   Bar/Dock/Launcher sichtbar, Journal sauber.
+>   Details: [[docs/24-noctarow-noctalia-handover]].
+> - **Dozenten-PC**, 2026-09-15, auf der abgeleiteten DisplayLink-Variante
+>   `localhost/noctarow-displaylink:44`. Details:
+>   [[docs/23-displaylink-evdi-dozenten-pc]].
+>
+> Für den **Yoga 920** ist kein Switch belegt. Er war die Build-Maschine
+> dieser Note, das Image lag dort nur in `containers-storage`.
+>
+> Verteilung läuft weiterhin ausschließlich über `containers-storage`, jede
+> Maschine baut selbst. `quay.io/metarow/noctarow` ist leer.
 
 > [!important] Live-Stand auf dem Yoga zum Zeitpunkt des Umbaus
 > Login-Shell war bereits `bash`. Homebrew war bereits bootstrapped
@@ -71,7 +85,7 @@ Zusammengeführt werden:
    gegen die sudo-Falle des Installers, systemd-User-Unit als
    Erstinstallation, `COPY overlay/ /` als Strukturprinzip.
 2. **Noctarow-Konfiguration** ([[docs/09-yoga-buildumgebung]] + Noctalia-
-   Integration): Terra gevendort, `noctalia-shell` per dnf, Sway-Drop-in-
+   Integration): Terra gevendort, `noctalia-legacy` per dnf, Sway-Drop-in-
    Kette, foot-Default, SDDM-HiDPI, Guard gegen `terra-obsolete`.
 
 > [!note] Bewusst akzeptierter Trade-off
@@ -105,7 +119,7 @@ mkdir -p overlay/usr/share/sway/config.d \
 |---|---|
 | `Containerfile` | Image-Definition (unten) |
 | `terra.repo` | gevendort, **mit `excludepkgs=terra-obsolete`** |
-| `overlay/usr/share/sway/config.d/` | 30-borders, 50-keyboard, 70-output, leere 90-bar/90-swayidle, 95-noctalia |
+| `overlay/usr/share/sway/config.d/` | 30-borders, 50-keyboard, 70-output, kommentierte Platzhalter 90-bar/90-swayidle, 95-noctalia |
 | `overlay/usr/share/noctarow/environment.noctarow` | wird im Build an `/etc/sway/environment` **angehängt** |
 | `overlay/usr/lib/tmpfiles.d/homebrew.conf` | `/var/home/linuxbrew` vorab, User-owned |
 | `overlay/usr/lib/systemd/user/homebrew-bootstrap.service` | Erstinstallation |
@@ -113,7 +127,7 @@ mkdir -p overlay/usr/share/sway/config.d \
 | `overlay/usr/libexec/noctarow/terminal-shell` | Terminal-Shell-Wrapper (nu, sonst bash) |
 | `overlay/etc/xdg/foot/foot.ini` | System-Default, Shell-Zuordnung über den Wrapper |
 | `overlay/usr/lib/sddm/sddm.conf.d/` | HiDPI + Tastatur |
-| `hosts/yoga920/`, `scripts/` | unverändert aus dem Bestand |
+| `hosts/<name>/`, `scripts/` | drei Hosts: `yoga920`, `asus-x515ja`, `dozenten-pc` |
 
 ## Die Dateien
 
@@ -188,6 +202,12 @@ EOF
 Läuft als **User** (brew verlangt das). Installiert brew, verankert die
 PATHs für **beide** Shells und zieht nushell/helix plus Leaf-Tools:
 
+> [!note] Abdruck gekürzt
+> Das Skript im Repo ist inzwischen länger: es verankert zusätzlich Helix als
+> `EDITOR`/`VISUAL` in `env.nu`, `.bashrc`, `git config --global core.editor`
+> und `~/.config/environment.d/10-noctarow-editor.conf`. Maßgeblich ist
+> `overlay/usr/libexec/noctarow/homebrew-bootstrap.sh`, nicht dieser Abdruck.
+
 ```bash
 cat > overlay/usr/libexec/noctarow/homebrew-bootstrap.sh << 'EOF'
 #!/usr/bin/bash
@@ -257,7 +277,7 @@ EOF
 cat > overlay/etc/xdg/foot/foot.ini << 'EOF'
 [main]
 shell=/usr/libexec/noctarow/terminal-shell
-font=monospace:size=12
+font=monospace:size=14
 EOF
 ```
 
@@ -267,15 +287,20 @@ Login-Shell bleibt unangetastet bash — kein `chsh`, kein
 ### Sway-Drop-ins und Environment
 
 Unverändert aus dem Bestand übernehmen (`30-borders.conf`,
-`50-keyboard.conf`, `70-output.conf` mit eDP-1 `scale 1.5`, leere
-`90-bar.conf`/`90-swayidle.conf`, `95-noctalia.conf` mit
-`exec qs -c noctalia-shell`) — jetzt unter
-`overlay/usr/share/sway/config.d/`.
+`50-keyboard.conf`, `70-output.conf` mit dem konservativen Image-Default
+`output * scale 1`, kommentierte Platzhalter `90-bar.conf`/`90-swayidle.conf`,
+`95-noctalia.conf` mit `exec qs -p /usr/share/noctarow/noctalia-shell`) —
+jetzt unter `overlay/usr/share/sway/config.d/`.
+
+> [!warning] Die 90-*-Dateien sind nicht leer, sondern kommentiert
+> Entscheidend ist der **Dateiname**, nicht der Inhalt: gleicher Basename in
+> `/usr/share/sway/config.d/` verdrängt die Datei des Basis-Images. Die
+> Kommentare erklären, warum der Slot belegt ist. Ein `: > datei` würde sie
+> löschen, ohne dass etwas auffällt.
 
 ```bash
-printf 'exec qs -c noctalia-shell\n' > overlay/usr/share/sway/config.d/95-noctalia.conf
-: > overlay/usr/share/sway/config.d/90-bar.conf
-: > overlay/usr/share/sway/config.d/90-swayidle.conf
+printf 'exec qs -p /usr/share/noctarow/noctalia-shell\n' \
+    > overlay/usr/share/sway/config.d/95-noctalia.conf
 ```
 
 > [!check] Dokumentations-Drift hiermit aufgelöst: `/etc/sway/environment`
@@ -295,20 +320,27 @@ FROM quay.io/fedora-ostree-desktops/sway-atomic:44
 # Manche Pakete verlangen ein vorhandenes /var/roothome, sonst bricht der Build ab.
 RUN mkdir -p /var/roothome
 
-# Terra (Fyra Labs): Quelle für noctalia-shell/noctalia-qs, x86_64 + aarch64.
+# Terra (Fyra Labs): Quelle für noctalia-legacy/noctalia-qs, x86_64 + aarch64.
 # Gevendort inkl. excludepkgs=terra-obsolete und skip_if_unavailable=False.
 COPY terra.repo /etc/yum.repos.d/terra.repo
 
 # --- Schicht 1: Noctalia (dnf) ---
 # noctalia-qs verlangt Qt 6.11; dnf hebt qt6-qtbase als normale Abhängigkeit an.
+# Terra hat die v4-Linie von noctalia-shell auf noctalia-legacy umbenannt.
 # Bewusst NICHT im Image: nushell und helix — die kommen per brew nach /var.
-RUN dnf install -y noctalia-shell \
+RUN dnf install -y noctalia-legacy \
     && dnf clean all \
     && rm -rf /var/cache/libdnf5 /var/cache/dnf
 
 # Guard: erfolgreicher dnf-Exit-Code ist KEIN Beweis der Installation
 # (Obsoletes-Umleitung, siehe terra-obsolete-Vorfall).
-RUN rpm -q noctalia-shell
+RUN rpm -q noctalia-legacy
+
+# QML-Baum nach /usr spiegeln: /etc/xdg liefe sonst durch den ostree
+# Drei-Wege-Merge und zerfiele in zwei Versionen. Begründung in
+# docs/24-noctarow-noctalia-handover.md, Abschnitt 5.
+RUN mkdir -p /usr/share/noctarow \
+    && cp -a /etc/xdg/quickshell/noctalia-shell /usr/share/noctarow/noctalia-shell
 
 # --- Schicht 2: Build-Toolchain für Homebrew (read-only in /usr) ---
 # brew selbst landet zur Laufzeit in /var/home/linuxbrew, nie im Image.
@@ -322,6 +354,16 @@ RUN dnf -y install \
 
 # --- Schicht 3: Overlay (Sway, foot, SDDM, tmpfiles, Bootstrap, Wrapper) ---
 COPY overlay/ /
+
+# Guard: qs -p muss auf das Verzeichnis zeigen, nie auf shell.qml --
+# sonst startet der Prozess, scheitert an den relativen QML-Imports
+# und blockiert stumm den Instanznamen.
+RUN ! grep -rq "noctalia-shell/shell.qml" /usr/share/sway/ \
+    && test -f /etc/xdg/quickshell/noctalia-shell/shell.qml
+
+# Guard: der gespiegelte /usr-Baum muss existieren und qs muss ihn finden.
+RUN test -x /usr/bin/qs \
+    && test -f /usr/share/noctarow/noctalia-shell/shell.qml
 
 RUN chmod +x /usr/libexec/noctarow/homebrew-bootstrap.sh \
              /usr/libexec/noctarow/terminal-shell \
@@ -353,7 +395,7 @@ cd ~/projekte/noctarow
 sudo podman build -t quay.io/metarow/noctarow:44-amd64 -t localhost/noctarow:44 .
 
 # Guard von außen wiederholen — kostet Sekunden, spart einen Boot-Zyklus
-sudo podman run --rm localhost/noctarow:44 rpm -q noctalia-shell
+sudo podman run --rm localhost/noctarow:44 rpm -q noctalia-legacy
 sudo podman run --rm localhost/noctarow:44 bash -c \
     'test -x /usr/libexec/noctarow/homebrew-bootstrap.sh && test -x /usr/libexec/noctarow/terminal-shell && echo overlay-ok'
 ```
@@ -407,14 +449,16 @@ getent passwd "$USER" | cut -d: -f7    # -> /bin/bash
 - [x] Containerfile + Overlay-Struktur umgesetzt und rootless gebaut/verifiziert
       (2026-08-14)
 - [x] Echter `sudo podman build` (root-Storage) — erfolgreich (2026-08-14)
-- [ ] `bootc switch --transport containers-storage` + Reboot
-- [ ] Erstlogin-Kontrolle nach dem Switch (siehe Abschnitt oben) — insbesondere
-      der Homebrew-Bootstrap-Lauf selbst, nicht nur der rootless Image-Inhalt
+- [x] `bootc switch` + Reboot — vollzogen auf ASUS X515JA (2026-08-25) und
+      Dozenten-PC (2026-09-15), siehe Callout oben. Yoga 920 offen.
+- [x] `90-bar.conf` gegen `sway-config-fedora` verifiziert (2026-09-15): das
+      Basis-Image liefert einen `bar { swaybar_command waybar }`-Block, also
+      beides zugleich. Unser gleichnamiger Platzhalter verdrängt ihn.
+      Details: [[docs/16-erkenntnisse-noctalia-container#Die Statuszeile: bar-Block mit waybar als Kommando]]
+- [ ] Erstlogin-Kontrolle: der Homebrew-Bootstrap-Lauf selbst auf einem
+      frisch geswitchten Gerät, nicht nur der Image-Inhalt
 - [ ] Erstlogin-Fenster live testen: foot **vor** abgeschlossenem
       Bootstrap öffnen → Wrapper muss sauber in bash landen
-- [ ] `90-bar.conf`-Dateinamen gegen aktuelle `sway-config-fedora`
-      verifizieren (waybar-exec-Snippet) — ungeklärt, siehe
-      [[docs/16-erkenntnisse-noctalia-container#Die Statuszeile: swaybar oder waybar — noch offen]]
 - [ ] Toolchain-Größe messen (`@development-tools` ist schwer) — Kandidat
       fürs Abspecken, falls die 15-GB-`/var`-Grenze auf dem Yoga drückt
 - [ ] Rollen-Matrix bestätigen: `10-core` (Toolchain + Bootstrap inkl.

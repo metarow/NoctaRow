@@ -9,6 +9,22 @@ tags: [github, ci, actions, multi-arch, quay, ssh, lizenz]
 Ziel: `github.com/metarow/noctarow` öffentlich, mit CI, die bei jedem Push
 beide Architekturen baut und nach `quay.io/metarow/noctarow` schiebt.
 
+> [!warning] Ist-Stand 2026-09-15 — nur Schritt 1 ist erledigt
+> | Schritt | Stand |
+> |---|---|
+> | Repository | **da**, als `github.com/metarow/NoctaRow`, Remote `origin` über **HTTPS**, nicht SSH |
+> | `LICENSE` | **fehlt**. Das Repo ist öffentlich, damit gilt der Absatz in Schritt 2 unverändert |
+> | Secrets, Workflow | **nicht angelegt**, es gibt kein `.github/` |
+>
+> Die Befehle unten sind deshalb weiter gültig, aber mit
+> `metarow/NoctaRow` als Namen zu lesen.
+>
+> **Vor Schritt 4 zu klären:** Der Workflow hier baut `amd64` **und**
+> `arm64` plus Manifest-List. [[docs/04-quay-veroeffentlichung#Multi-Arch: aktuell zurückgestellt]]
+> stellt Multi-Arch dagegen ausdrücklich zurück, es gibt keine
+> aarch64-Zielplattform. Einer von beiden Ständen ist zu korrigieren, bevor
+> CI gebaut wird.
+
 Der Gewinn ist nicht Öffentlichkeit als Selbstzweck. Es ist:
 
 - **Ein `git pull` statt Tarball-Herumtragen**, sobald mehr als eine Maschine

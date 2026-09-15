@@ -34,13 +34,33 @@ Der Merge Request, der das Tastaturproblem upstream beheben soll, liegt gegen
 | Was | Wo |
 |---|---|
 | Noctalia-Shell | `github.com/noctalia-dev/noctalia-shell` |
-| Quickshell | in Fedora paketiert: `dnf install quickshell` |
+| Terra (Fyra Labs), liefert `noctalia-legacy` + `noctalia-qs` | `repos.fyralabs.com/terra44`, gevendort als `terra.repo` |
+| Quickshell (Fedora-Paket) | `dnf install quickshell` — **für Noctarow nicht verwendbar**, siehe Warnung |
 
-> [!tip] Kein COPR nötig
-> `quickshell`, `matugen` und `cliphist` liegen für aarch64 **und** x86_64 in
-> den offiziellen Fedora-Repos. Für ein bootc-Image, das jahrelang auf
-> Schulungsrechnern bootet, ist das erheblich: COPRs geben weder Signatur- noch
-> Lebensdauer-Zusagen.
+> [!danger] Fedoras `quickshell` kollidiert mit `noctalia-qs`
+> Noctalia v4 braucht den eigenen Quickshell-Fork `noctalia-qs`. Der liefert
+> dieselben Provides wie Fedoras `quickshell` und ist **nicht gleichzeitig**
+> installierbar. Für Noctarow gilt deshalb: `noctalia-legacy` über Terra
+> installieren, das zieht `noctalia-qs` mit. **Kein `dnf install quickshell`.**
+> Hergeleitet in [[docs/16-erkenntnisse-noctalia-container#`noctalia-qs` kollidiert mit Fedoras `quickshell`]].
+
+> [!tip] `matugen` und `cliphist` brauchen kein COPR
+> Beide liegen für aarch64 **und** x86_64 in den offiziellen Fedora-Repos und
+> kommen ohnehin als Weak Dependencies von `noctalia-legacy` mit. Für ein
+> bootc-Image, das jahrelang auf Schulungsrechnern bootet, ist das erheblich:
+> COPRs geben weder Signatur- noch Lebensdauer-Zusagen. Genau deshalb ist die
+> DisplayLink-COPR unten eine bewusst isolierte Ausnahme.
+
+## DisplayLink / evdi (nur Dozenten-PC)
+
+| Was | Wo |
+|---|---|
+| `displaylink` + `evdi` (COPR) | `copr.fedorainfracloud.org/coprs/crashdummy/Displaylink` |
+| evdi upstream | `github.com/DisplayLink/evdi` |
+
+Einzige COPR-Quelle im Projekt und bewusst nicht im Basis-Image, sondern im
+abgeleiteten `Containerfile.displaylink`. Begründung:
+[[docs/23-displaylink-evdi-dozenten-pc#Architekturentscheidung: evdi gehört NICHT ins Basis-Image]].
 
 ## bootc
 

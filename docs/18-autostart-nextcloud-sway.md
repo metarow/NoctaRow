@@ -219,7 +219,11 @@ Datenzeile zu führen und das Target beim Rendern einzusetzen, statt
 ## Offene Punkte
 
 - [ ] Diagnose Nr. 1–5 auf dem Yoga 920 durchlaufen, Fall A gegen B entscheiden
-- [ ] Existiert `sway-session.target` im Basis-Image? (bestimmt `WantedBy`)
+- [x] Existiert `sway-session.target` im Basis-Image? — **ja**, gegengeprüft
+      am 2026-09-15 gegen `localhost/noctarow:44`. Vorhanden sind
+      `sway-session.target`, `sway-session-shutdown.target` und
+      `sway-xdg-autostart.target` unter `/usr/lib/systemd/user/`. Damit ist
+      `WantedBy=sway-session.target` der belegbare Weg.
 - [ ] Kaltstart-Test: läuft der Client, bevor die Bar oben ist? → Race prüfen
 - [ ] Tray-Registrierung gegen Noctalias StatusNotifierItem-Host messen
 - [ ] Schlüsselbund: welcher Daemon läuft im Sway-Atomic-Image überhaupt?

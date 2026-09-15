@@ -123,11 +123,26 @@ laufendem `systemd-localed`, also **nicht im nested Container testbar**.
 
 | Datei | Problem | Lösung |
 |---|---|---|
-| `90-bar.conf` | startet `swaybar` parallel zu Noctalias Panel | gleichnamige Leerdatei |
-| `90-swayidle.conf` | zweiter Idle-Daemon, streitet um die Sperre | gleichnamige Leerdatei |
+| `90-bar.conf` | `bar`-Block startet **waybar** parallel zu Noctalias Panel | gleichnamige Datei ohne Direktiven |
+| `90-swayidle.conf` | zweiter Idle-Daemon, streitet um die Sperre | gleichnamige Datei ohne Direktiven |
+
+> [!check] Präzisierung 2026-09-15: es ist beides
+> Die Formulierung „startet swaybar" war unvollständig und hat später eine
+> lange Unklarheit ausgelöst. Das Basis-Image liefert einen swaybar-`bar`-Block,
+> dessen Kommando **waybar** ist:
+> ```
+> bar {
+>     swaybar_command waybar
+> }
+> ```
+> Deshalb greift `swaymsg bar mode invisible` nicht: der Block delegiert an
+> waybar, und waybar kennt sway's Bar-Modus nicht. Hergang:
+> [[docs/16-erkenntnisse-noctalia-container#Die Statuszeile: `bar`-Block mit waybar als Kommando]].
 
 Weil wir das Image selbst bauen, überschreiben wir die Dateien direkt in
-`/usr/share` — kein `/etc`-Umweg, kein Merge-Risiko.
+`/usr/share` — kein `/etc`-Umweg, kein Merge-Risiko. Die Ersatzdateien sind
+nicht leer, sondern tragen einen erklärenden Kommentar; wirksam ist allein der
+gleiche Basename.
 
 ## Fremdrepos: `Obsoletes` ersetzt Pakete lautlos
 
@@ -159,8 +174,13 @@ das angeforderte Paket durch den Obsoleter — **wortlos, mit Exit-Code 0.**
 > schützt nicht davor: das Repo *war* erreichbar, das Paket *war* auflösbar.
 > Konsequenz: nach jedem Build gegen die Liste der angeforderten Pakete prüfen.
 > ​```nu
-> podman run --rm localhost/noctarow:44 rpm -q nushell noctalia-shell helix
+> podman run --rm localhost/noctarow:44 rpm -q noctalia-legacy
 > ​```
+> **Achtung, der Befund unten ist zeitgebunden:** Damals lagen `nushell` und
+> `helix` noch im Image. Heute kommen beide über Homebrew nach `/var` und sind
+> im Image bewusst **nicht** installiert, siehe
+> [[docs/15-noctarow-basis-image]]. Das Paket heißt inzwischen
+> `noctalia-legacy`. Die Lehre über `Obsoletes` bleibt davon unberührt.
 
 ### Diagnose-Reihenfolge
 
@@ -215,10 +235,10 @@ Behandelt in [[docs/05-hidpi-und-monitore]].
 - das `/etc`-3-Wege-Merge-Verhalten über zwei Image-Generationen
 - SDDM, First-Boot-tmpfiles ins `$HOME`
 
-Dafür bleibt nur der echte `bootc switch` auf dem Yoga selbst, siehe
+Dafür bleibt nur der echte `bootc switch` auf dem Gerät selbst, siehe
 [[docs/06-lenovo-yoga-deployment]] — eine separate VM-Teststufe entfällt, da
-Build- und Zielmaschine identisch sind.
+Build- und Zielmaschine bei jedem Flottengerät identisch sind.
 
 > [!note] Offene Punkte, nicht vergessen
 >
-> - **Lint-Warnungen:** `nonempty-run-tmp` (`/run/dnf`) und `var-log` (`/var/log/dnf5.log`) überleben dein `rm -rf`. Kosmetisch, aber `rm -rf /run/dnf /var/log/dnf5.log /var/lib/dnf` im selben RUN räumt sie weg.
+> - **Lint-Warnungen:** `nonempty-run-tmp` (`/run/dnf`) und `var-log` (`/var/log/dnf5.log`) überleben dein `rm -rf`. Kosmetisch. Beide Containerfiles räumen inzwischen im selben `RUN` auf, `bootc container lint` meldet trotzdem noch Reste unter `/var/lib/dnf/repos` und `/var/cache/ldconfig`. Bewusst hingenommen: 10 bzw. 11 Checks bestanden, nur Warnungen.

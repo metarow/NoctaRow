@@ -11,8 +11,9 @@ Das Image ist für alle Geräte identisch (siehe
 Abweichungen kommen als `hosts/<name>/` ins Repo und werden per
 `noctarow apply-host <name>` auf dem jeweiligen Gerät nachgezogen. Dieses
 Dokument ist der wiederholbare Ablauf, um für ein neues Gerät zu ermitteln,
-was überhaupt abweicht — am [[hosts/asus-x515ja/README|ASUS X515JA]] als
-zweitem Beispiel neben [[hosts/yoga920/README|Yoga 920]] durchgespielt.
+was überhaupt abweicht — durchgespielt an
+[[hosts/yoga920/README|Yoga 920]], [[hosts/asus-x515ja/README|ASUS X515JA]]
+und [[hosts/dozenten-pc/README|Dozenten-PC]].
 
 ## Ablauf
 
@@ -26,7 +27,36 @@ cat /sys/devices/virtual/dmi/id/board_name
 
 Konvention: kurz, aus Hersteller + Modell/Board, z. B. `yoga920`,
 `asus-x515ja`. Kein Anspruch auf eine feste Namensschablone — der Name ist
-nur der Schlüssel für `noctarow apply-host`.
+nur der Schlüssel für `noctarow apply-host`. Liefern `sys_vendor` und
+`product_name` nichts Brauchbares, wie bei Eigenbau-Desktops, ist
+`board_name` der stabilste Identifikator (Beispiel `dozenten-pc`, Board
+`P8B75-V`).
+
+### 1b. Reicht das Basis-Image, oder braucht das Gerät eine eigene Variante?
+
+Diese Frage vor allem anderen klären, denn sie entscheidet über den ganzen
+Rollout-Weg. Ein Host-Override kann nur `/etc` und `~/.config` verändern. Was
+**Pakete, Kernelmodule oder Startparameter** braucht, geht damit nicht.
+
+```bash
+lsusb        # Adapter mit eigenem Treiberbedarf, z. B. DisplayLink (17e9)
+lspci | grep -iE 'vga|3d|nvidia'   # dGPU? -> eigene Treiberschicht nötig
+```
+
+| Befund | Weg |
+|---|---|
+| Nur Panel/Tastatur/Skalierung weichen ab | Host-Override, dieser Ablauf ab Schritt 2 |
+| Zusätzliche Kernelmodule oder proprietäre Daemons nötig | **abgeleitetes Image** `FROM noctarow:44`, zusätzlich zum Host-Override |
+
+Bisher genau ein Fall der zweiten Sorte: Der Dozenten-PC braucht `evdi` plus
+`DisplayLinkManager` und `sway --unsupported-gpu`. Das liegt in
+`Containerfile.displaylink` und wird mit `noctarow build-displaylink` gebaut.
+Warum das nicht ins Basis-Image gehört, steht in
+[[docs/23-displaylink-evdi-dozenten-pc#Architekturentscheidung: evdi gehört NICHT ins Basis-Image]].
+
+Beides schließt sich nicht aus: Ein Gerät mit eigener Image-Variante bekommt
+**trotzdem** ein `hosts/<name>/` für Ausgabe, Tastatur und Noctalia-Settings.
+Die Variante liefert die Systemschicht, der Override die Sitzungsschicht.
 
 ### 2. Ausgabe prüfen — braucht es ein `70-output.conf`?
 
@@ -93,8 +123,11 @@ Farbschema) unbedenklich.
 
 README im Host-Verzeichnis: Panel/Touchpad-Modell, welche Dateien warum
 (nicht) angelegt wurden, die exakten Befehle aus Schritt 1–4 als Beleg
-(nicht nur das Ergebnis — der nächste, der ein drittes Gerät anbindet, soll
-die Befehle kopieren können).
+(nicht nur das Ergebnis — wer als Nächstes ein Gerät anbindet, soll die
+Befehle kopieren können). Läuft das Gerät auf einer eigenen Image-Variante
+(Schritt 1b), gehört das **als Erstes** ins Host-README, samt der
+Build- und Switch-Befehle. Muster:
+[[hosts/dozenten-pc/README|hosts/dozenten-pc]].
 
 ```bash
 noctarow apply-host <name>
@@ -110,4 +143,6 @@ Prüfliste für die erste Inbetriebnahme insgesamt:
 
 Neue Zeile in
 [[docs/06-lenovo-yoga-deployment#Für die Flotte]] mit Architektur,
-Image-Tag und Host-Override-Pfad.
+Image-Tag und Host-Override-Pfad. Bei einer eigenen Image-Variante gehört
+deren Tag in die Spalte, nicht der des Basis-Images (Beispiel:
+`44-displaylink` beim Dozenten-PC).

@@ -10,6 +10,18 @@ Ziel: `quay.io/metarow/noctarow` als **öffentliches Repository**, Multi-Arch
 (`amd64` + `arm64`), sodass jede Maschine der Flotte per `bootc switch` daran
 andocken kann.
 
+> [!warning] Noch nicht vollzogen (Stand 2026-09-15)
+> Das Repository ist angelegt, aber **leer**:
+> ```bash
+> skopeo list-tags docker://quay.io/metarow/noctarow
+> # -> "Tags": []
+> ```
+> Alle drei Geräte bauen bis auf Weiteres selbst und schalten über
+> `--transport containers-storage` um. Solange hier nichts liegt, existiert
+> kein gemeinsamer Flottenstand und die Tags `:44`, `:stable` und
+> `:44.<datum>` aus der Tabelle unten sind Planung, keine Realität. Das ist
+> der erste offene Punkt im Root-`README.md`.
+
 ## Einrichtung (einmalig, im Browser)
 
 > [!warning] Zugangsdaten
@@ -129,4 +141,5 @@ Der öffentliche Schlüssel wandert dann ins Image nach
 `/usr/etc/containers/policy.json`, damit `bootc upgrade` nur signierte Images
 akzeptiert. **Der private Schlüssel gehört nicht ins Repository.**
 
-`.gitignore` enthält deshalb bereits `cosign.key` und `*.pem`.
+`.gitignore` sperrt deshalb `cosign.key`, `*.key` und `*.pem` (nachgetragen
+am 2026-09-15, die Einträge fehlten vorher trotz dieser Zusage).

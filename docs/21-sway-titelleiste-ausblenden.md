@@ -4,9 +4,10 @@ aliases: [Titelleiste-aus, default_border, Border-Drop-in, 30-borders]
 teil_von: "[[README]]"
 tags: [sway, config, border, titelleiste, nushell, drop-in, image]
 erstellt: 2026-08-13
-zielgeraet: NoctaRow-Image (Sway-Atomic), lokal getestet
-verifiziert_gegen: Nushell 0.114.1 (save/mkdir-Semantik), Sway-Border-Doku
-status: entwurf
+zielgeraet: NoctaRow-Image (Sway-Atomic)
+verifiziert_am: 2026-09-15
+verifiziert_gegen: Nushell 0.114.1 (save/mkdir-Semantik), Sway-Border-Doku, gebautes Image localhost/noctarow:44
+status: umgesetzt — Drop-in ist im Image
 ---
 
 # 21 — Sway: Fenstertitelleiste ausblenden
@@ -140,10 +141,17 @@ gilt das layered-include-Schema:
 
 ## Offene Punkte
 
+- [x] `30-borders.conf` ins Image übernehmen — erledigt. Die Datei liegt als
+      `overlay/usr/share/sway/config.d/30-borders.conf` im Repo und kommt über
+      `COPY overlay/ /` ins Image. Gegengeprüft am 2026-09-15:
+      ```bash
+      podman run --rm localhost/noctarow:44 cat /usr/share/sway/config.d/30-borders.conf
+      # -> default_border pixel 2
+      #    default_floating_border pixel 2
+      ```
 - [ ] Border-Wirkung (`pixel 2` vs. `none`) auf Yoga 920 live sichten
 - [ ] `hide_edge_borders smart` / `smart_borders on` auf 4K-Output prüfen
 - [ ] Zusammenspiel mit `workspace_layout tabbed` in der Praxis bewerten
-- [ ] `30-borders.conf` als `COPY` ins Containerfile übernehmen, dann Status → verifiziert
 
 ---
 

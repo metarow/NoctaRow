@@ -72,8 +72,12 @@ swaymsg reload
 > skalierten Fenstern. Das ist der häufigste HiDPI-Fehler und er kommt fast
 > immer aus einer kopierten X11-Anleitung.
 
-Was sinnvoll ist, gehört ins Image nach `/usr/share/sway/environment` bzw.
-`/etc/sway/environment`:
+Was sinnvoll ist, wird im Build an **`/etc/sway/environment`** angehängt.
+`/usr/share/sway/environment` existiert auf Fedora **nicht** und wird von
+niemandem gelesen, siehe
+[[docs/16-erkenntnisse-noctalia-container#`/usr/share/sway/environment` existiert bei Fedora nicht]].
+Im Repo liegt der Inhalt als `overlay/usr/share/noctarow/environment.noctarow`
+und wird angehängt, damit Fedoras Bestand erhalten bleibt:
 
 ```sh
 # Qt: Wayland-Backend erzwingen, sonst fällt es auf XWayland zurück

@@ -6,7 +6,7 @@ tags: [erkenntnisse, noctalia, quickshell, noctalia-qs, terra, sway, capabilitie
 erstellt: 2026-07-16
 system: Fedora Sway Atomic 44 (Yoga 920-13IKB, x86_64)
 verifiziert_am: 2026-07-16
-verifiziert_gegen: quay.io/fedora-ostree-desktops/sway-atomic:44 (x86_64), noctalia-shell 4.7.7 / noctalia-qs 0.0.12
+verifiziert_gegen: quay.io/fedora-ostree-desktops/sway-atomic:44 (x86_64), noctalia-shell 4.7.7 / noctalia-qs 0.0.12 (heute noctalia-legacy 4.7.7-2, Terra-Rename)
 status: im-container-verifiziert
 ---
 
@@ -58,9 +58,22 @@ statt in `/etc/xdg/quickshell` (Config-Pfad), wo `shell.qml` korrekt liegt.
 
 **Lösung:** Pfad explizit setzen, Namensauflösung umgehen.
 
-```ini
-exec qs -p /etc/xdg/quickshell/noctalia-shell/shell.qml
-```
+> [!danger] Diese Zeile ist überholt und bricht heute den Build
+> Der hier ursprünglich empfohlene Pfad zeigte auf die **Datei**:
+> ```ini
+> exec qs -p /etc/xdg/quickshell/noctalia-shell/shell.qml    # FALSCH
+> ```
+> Im Dateimodus spannt Quickshell den QML-Importpfad nicht auf, Noctalias
+> relative Imports scheitern, der Prozess lebt und zeichnet nichts. Der
+> `Containerfile` hat dafür seit 2026-08-25 einen Guard, der genau dieses
+> Muster abfängt und den Build scheitern lässt.
+>
+> Gültig ist der **Verzeichnismodus** auf den nach `/usr` gespiegelten Baum:
+> ```ini
+> exec qs -p /usr/share/noctarow/noctalia-shell
+> ```
+> Vollständige Diagnose und Begründung der Spiegelung:
+> [[docs/24-noctarow-noctalia-handover]].
 
 > [!tip] `-p` ist die bessere Wahl, nicht nur ein Workaround
 > Im selbstgebauten Image kennst du den Pfad. `-p` hängt weder von quickshells
@@ -108,7 +121,12 @@ Konfiguriert wird primär über das Settings-Panel in der laufenden Shell (nicht
 durch Handeditieren) — es schreibt nach `~/.config/noctalia/`. Zum Start des
 QML-Pfads selbst siehe oben, [„`qs -c noctalia-shell` funktioniert mit dem
 Terra-Paket nicht"](#qs--c-noctalia-shell-funktioniert-mit-dem-terra-paket-nicht) —
-`-p /etc/xdg/quickshell/noctalia-shell/shell.qml` ist der verifizierte Weg.
+verifizierter Weg ist das **Verzeichnis** des gespiegelten Baums,
+`-p /usr/share/noctarow/noctalia-shell`.
+
+Im Image liegt der Baum zweimal: die RPM-Kopie unter `/etc/xdg/quickshell/`
+bleibt als Experimentierfläche liegen, gestartet wird die `/usr`-Spiegelung.
+Begründung: [[docs/24-noctarow-noctalia-handover]], Abschnitt 5.
 
 ### Theming-Env (qt6ct/Kvantum-Kontext)
 
@@ -168,26 +186,30 @@ Ebenfalls nicht vorhanden: `/usr/share/sway/config` — Hauptconfig ist
 `/etc/sway/config`. Das Verzeichnis `/usr/share/sway/config.d/` existiert (siehe
 [[docs/01-erkenntnisse#Das dreistufige Include-System]]).
 
-### Die Statuszeile: swaybar oder waybar — noch offen
+### Die Statuszeile: `bar`-Block mit waybar als Kommando
 
-> [!warning] Ich hatte mich hier zu früh festgelegt
-> In früheren Notizen dieser Session habe ich behauptet, Fedoras Leiste sei
-> **waybar** und [[docs/01-erkenntnisse#Kollisionen mit Noctalia]] („startet
-> swaybar") sei zu korrigieren. **Das ist nicht belegt.** `01` ist gegen das
-> echte Image verifiziert; mein „waybar" stammte aus einer Websuche, die den
-> Spin statt Atomic gemeint haben kann. Beleg fehlt in beide Richtungen.
->
-> Indiz für waybar: `swaymsg bar mode invisible` wirkte beim Nutzer nicht — das
-> spräche gegen einen swaybar-`bar {}`-Block. Indiz für swaybar: die verifizierte
-> `01`. **Ungeklärt.** Settelt sich mit einem Befehl:
-> ```nu
-> noctarow test-nested --tag 44 --shell
-> # im Container:
-> cat /usr/share/sway/config.d/90-bar.conf
-> pgrep -al waybar
+> [!check] Geklärt am 2026-09-15 — beide Lesarten waren halb richtig
+> Die Frage stand lange offen, weil sie falsch gestellt war: es ist kein
+> Entweder-oder. Das Basis-Image liefert in
+> `/usr/share/sway/config.d/90-bar.conf`:
 > ```
-> `exec waybar` → waybar (01 korrigieren). `bar { … }` → swaybar (meine
-> waybar-Behauptung korrigieren).
+> bar {
+>     swaybar_command waybar
+> }
+> ```
+> Es gibt also einen **swaybar-`bar`-Block**, wie [[docs/01-erkenntnisse#Kollisionen mit Noctalia]]
+> sagte, und dieser Block startet als Kommando **waybar**, wie die
+> Gegenbehauptung vermutete.
+>
+> Das erklärt auch das Indiz, das die Sache verwirrt hatte:
+> `swaymsg bar mode invisible` blieb wirkungslos, weil der Block die Anzeige
+> an waybar delegiert und waybar sway's Bar-Modus nicht kennt.
+>
+> Verifiziert mit:
+> ```bash
+> podman run --rm quay.io/fedora-ostree-desktops/sway-atomic:44 \
+>     cat /usr/share/sway/config.d/90-bar.conf
+> ```
 
 > [!check] Der Fix funktioniert unabhängig davon
 > Wir **ersetzen** `/usr/share/sway/config.d/90-bar.conf` im Build durch eine
@@ -303,31 +325,36 @@ Die `cap_sys_nice`-Diagnose kam aus einem Drei-Wege-Bisect (bash läuft /
 Jeder Schritt schloss eine Hypothese aus. Prinzip beibehalten: bei „Operation
 not permitted" nicht raten, sondern isolieren.
 
-## Offene Punkte (nur nach dem Switch messbar)
+## Offene Punkte
 
-- **swaybar vs. waybar** — `cat 90-bar.conf` settelt es (s. o.)
-- **`I3 event socket disconnected` nach ~6 s** — genau die IPC-Verbindung des
-  Workspace-Indikators. Container-Artefakt oder echt? Nur auf Hardware messbar.
-- **`failed to parse config file`** nach kanshis `Found config *` — Urheber via
+Der Switch ist inzwischen vollzogen (ASUS 2026-08-25, Dozenten-PC
+2026-09-15), diese Punkte sind damit messbar geworden.
+
+- [x] ~~**swaybar vs. waybar**~~ — geklärt, `bar`-Block mit
+  `swaybar_command waybar` (s. o.)
+- [x] ~~**`sddm/`, `tmpfiles/`, `bootc container lint`**~~ — gegen Builds
+  verifiziert, `lint` läuft als letzter Schritt in beiden Containerfiles
+- [x] ~~**`scale 1.5` vs. `scale 2`**~~ — geklärt: `scale 2` war ganzzahlig, aber
+  Noctalia/Panels wirkten damit doppelt so groß. `scale 1.5` als **Host-Override**
+  für den 4K-Yoga gesetzt, der Image-Default bleibt `output * scale 1`.
+- [ ] **`I3 event socket disconnected` nach ~6 s** — genau die IPC-Verbindung des
+  Workspace-Indikators. Container-Artefakt oder echt? Jetzt auf Hardware messbar.
+- [ ] **`failed to parse config file`** nach kanshis `Found config *` — Urheber via
   `grep -rn exec /etc/sway /usr/share/sway/config.d` finden
-- ~~**`scale 1.5` vs. `scale 2`**~~ — geklärt: `scale 2` war ganzzahlig, aber
-  Noctalia/Panels wirkten damit doppelt so groß. `scale 1.5` gesetzt (Repo +
-  Live-System), [[docs/05-hidpi-und-monitore]] entsprechend korrigiert.
-- **`sddm/`, `tmpfiles/`, `bootc container lint`** — nie gegen einen Build
-  verifiziert
+- [ ] **Theming-Env** (`QT_QPA_PLATFORMTHEME`) — steht weiter nur aus dem
+  Wegwerf-Layer-Test, nicht im Image
 
 ## Korrekturen an anderen Notizen
 
-- [ ] [[docs/01-erkenntnisse]] · Umgebungsbefunde: `quickshell` aus Fedora-Repos
+- [x] [[docs/01-erkenntnisse]] · Umgebungsbefunde: `quickshell` aus Fedora-Repos
   ist für Noctalia v4 **nicht** nutzbar → `noctalia-qs` via Terra (Kollision)
-- [ ] [[docs/01-erkenntnisse]] · Kollisionen: `90-bar.conf`-Label
-  (swaybar/waybar) erst nach `cat`-Beleg festschreiben — **nicht** blind auf
-  waybar ändern
-- [ ] [[docs/07-referenz-quellen]] · `quickshell` nicht installieren (kollidiert
-  mit `noctalia-qs`)
-- [ ] [[docs/09-yoga-buildumgebung]] · `environment` anhängen an
+- [x] [[docs/01-erkenntnisse]] · Kollisionen: `90-bar.conf`-Label festgeschrieben,
+  Beleg liegt vor (s. o.)
+- [x] [[docs/07-referenz-quellen]] · `quickshell` nicht installieren (kollidiert
+  mit `noctalia-qs`) — erledigt 2026-09-15
+- [x] [[docs/09-yoga-buildumgebung]] · `environment` anhängen an
   `/etc/sway/environment`, nicht nach `/usr/share`
-- [ ] [[docs/09-yoga-buildumgebung]] · offene Frage „rootless/rootful" ist
+- [x] [[docs/09-yoga-buildumgebung]] · offene Frage „rootless/rootful" ist
   beantwortet: rootless + `save | load`
 
 ## Verwandte Notizen

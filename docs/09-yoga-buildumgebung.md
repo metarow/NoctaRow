@@ -697,71 +697,16 @@ RUN bootc container lint
 
 Beachte die **vier** Backticks außen — der Inhalt enthält selbst Codefences:
 
-````nu
-r#'# Noctarow
-
-Custom bootc/OCI-Image auf Basis von Fedora Sway Atomic 44.
-Ziel-Registry: `quay.io/metarow/noctarow`
-Primäre Zielhardware: Lenovo Yoga 920-13IKB (x86_64, 4K, Intel UHD 620)
-
-Betreiber: MetaRow Software UG
-
-## Struktur
-
-| Pfad | Zweck |
-|---|---|
-| `Containerfile` | Image-Definition |
-| `terra.repo` | gevendorte Terra-Repo-Datei (Quelle für Noctalia) |
-| `sway/` | Sway-Drop-ins fürs Image (`/usr/share/sway/config.d/`) |
-| `foot/foot.ini` | foot-System-Default (`/etc/xdg/foot/`) |
-| `sddm/`, `tmpfiles/` | Login-Screen und First-Boot-Auslieferung |
-| `hosts/yoga920/` | hostspezifische Overrides (Output, Tastatur, kanshi) |
-| `scripts/` | noctarow.nu (Build/Test/Push) |
-
-## Grundsätze
-
-- **Was alle brauchen, gehört ins Image; was nur diese Maschine braucht, nach
-  `/etc`.** `rpm-ostree install` ist zum Bootstrappen erlaubt, aber temporär —
-  Dauerlayer brechen den sauberen Update-Pfad.
-- **System-weite Drop-ins** unter `/usr/share` bzw. `/etc`, keine
-  `~/.config`-Dateien im Image.
-- **Keine Top-Level-`~/.config/sway/config`** — Sway überspringt sonst die
-  System-Default komplett (schwarzer Bildschirm).
-- **Skalierung:** eDP-1 fraktional auf `scale 1.5` (XWayland-Unschärfe bewusst
-  akzeptiert). Rückweg auf `scale 2`, falls eine Schulungsflotte Ziel wird.
-
-## Bauen (auf dem Yoga, Nushell)
-
-```nu
-cd ~/projekte/noctarow
-sudo podman build -t quay.io/metarow/noctarow:44-amd64 .
-```
-
-`sudo` ist zwingend: Das Image muss in root's `containers-storage` landen,
-sonst findet `bootc switch --transport containers-storage` es nicht.
-
-## Wechseln
-
-```nu
-sudo bootc switch --transport containers-storage quay.io/metarow/noctarow:44-amd64
-sudo systemctl reboot
-```
-
-## Zurückrollen
-
-```nu
-sudo bootc rollback
-sudo systemctl reboot
-```
-
-## Offen
-
-- [ ] cosign-Signierung der Images
-- [ ] QEMU-Vortest vor dem Bare-Metal-Boot
-- [ ] Entscheidung: Terra (Drittanbieter) vs. `noctalia-qs` selbst bauen
-- [ ] Entscheidung: v4 (`-legacy`) vs. v5-Track
-'# | save README.md
-````
+> [!warning] README hier nicht mehr generieren — Abdruck war veraltet
+> An dieser Stelle stand ein vollständiger `README.md`-Generator mit der
+> **alten** Repo-Struktur (`sway/`, `foot/`, `sddm/`, `tmpfiles/` als
+> Top-Level-Verzeichnisse). Die gibt es seit der Umstellung auf
+> `COPY overlay/ /` nicht mehr, siehe [[docs/15-noctarow-basis-image#Repo-Struktur]].
+> Ein Lauf dieses Blocks hätte das gepflegte README mit einem Stand von
+> 2026-07 überschrieben.
+>
+> Maßgeblich ist das `README.md` im Repo. Beim Bootstrap eines neuen Klons
+> wird es mitgeklont, es muss nicht erzeugt werden.
 
 #### Kontrolle
 
@@ -893,8 +838,17 @@ noctarow output-check
 
 ## Schritt 11 — Layer wieder abbauen
 
-Sobald Noctarow selbst `nushell` und `helix` mitbringt — und das tut es laut
-Containerfile oben:
+> [!warning] Prämisse überholt — Noctarow bringt `nushell`/`helix` NICHT mit
+> Dieser Schritt stammt aus der Zeit, als beide Werkzeuge im Containerfile
+> standen. Der aktuelle Schnitt lässt sie bewusst draußen: sie kommen zur
+> Laufzeit über Homebrew nach `/var/home/linuxbrew`, siehe
+> [[docs/15-noctarow-basis-image]]. Wer die Exploration-Layer abbaut, hat
+> danach also **kein** `nu` mehr, bis der Brew-Bootstrap durchgelaufen ist.
+> Der Befehl bleibt für den Abbau der Layer korrekt, die Begründung darunter
+> nicht.
+
+Die ursprüngliche Formulierung lautete „sobald Noctarow selbst `nushell` und
+`helix` mitbringt":
 
 ```nu
 sudo rpm-ostree uninstall nushell helix jq gh util-linux-user
@@ -925,7 +879,7 @@ noctarow output-check                          # scale 1.5 erwartet — s. Schri
 systemctl --user status sway-session.target
 pgrep -a qs                                    # Noctalia läuft
 pgrep -al waybar                               # muss leer sein
-rpm -q noctalia-shell                          # v4.7.x — Sway-Workspace-Backend
+rpm -q noctalia-legacy                         # v4.7.x — Sway-Workspace-Backend
 ```
 
 ## Aufgaben
@@ -933,20 +887,29 @@ rpm -q noctalia-shell                          # v4.7.x — Sway-Workspace-Backe
 - [x] `rpm-ostree status` — nur `nushell` gelayert, kein `ReplacedBasePackages` (2026-07-16)
 - [x] `sudo rpm-ostree cleanup -r` — Rollback-Deployment entfernt (2026-07-16)
 - [x] `sudo bootc status` — „Booted ostree" (2026-07-16)
+Stand 2026-09-15 nachgezogen. Diese Note ist ein Session-Protokoll vom
+2026-07-16; erledigt wurde vieles davon in späteren Sessions, dokumentiert in
+[[docs/15-noctarow-basis-image]] und [[docs/24-noctarow-noctalia-handover]].
+
+- [x] `30-borders.conf` Inhalt sichten und ins Projekt übernehmen — liegt als
+      `overlay/usr/share/sway/config.d/30-borders.conf` im Image
+- [x] Projektverzeichnis vervollständigen — Struktur steht, jetzt Overlay-Prinzip
+- [x] `kanshi`/`matugen`/`cliphist` — geprüft: `kanshi` bringt das Basis-Image
+      mit, `matugen`/`cliphist` kommen als Weak Dependencies von
+      `noctalia-legacy`, siehe [[docs/24-noctarow-noctalia-handover#4.3]]
+- [x] **`scale 2` oder `scale 1.5`?** — aufgelöst: Image-Default ist
+      `output * scale 1`, `scale 1.5` ist ein **Host-Override** des 4K-Yoga
+- [x] **rootless oder rootful?** — rootless, Brücke ist `podman save | sudo
+      podman load` alias `noctarow to-root` (steht oben in Schritt 7)
+- [x] swaybar vs. waybar — geklärt: `bar { swaybar_command waybar }`, also
+      beides, siehe [[docs/01-erkenntnisse#Kollisionen mit Noctalia]]
+- [x] [[docs/07-referenz-quellen]] korrigieren: `quickshell` kollidiert mit
+      `noctalia-qs` — erledigt 2026-09-15
+- [x] Erster Build und Switch — vollzogen auf ASUS X515JA (2026-08-25) und
+      Dozenten-PC (2026-09-15); für den Yoga steht der Switch weiter aus
 - [ ] User-Dateien wegsichern (`config.d`, `.config/noctalia`, `.cache/noctalia`)
-- [ ] `30-borders.conf` Inhalt sichten und ins Projekt übernehmen
-- [ ] Build-Umgebung prüfen (`podman version`, `df -h /var`, GraphRoot)
-- [ ] Trockenlauf: Basis-Image pullen
-- [ ] Projektverzeichnis vervollständigen (`terra.repo`, `Containerfile`, `README.md`, Drop-ins)
 - [ ] **Erst nach Schritt 5:** `use scripts/noctarow.nu *` in die `config.nu` nachtragen
-- [ ] waybar-Snippet-Dateinamen live verifizieren (glob/filter)
-- [ ] `kanshi`/`matugen`/`cliphist` — prüfen, was das Basis-Image schon mitbringt
-- [ ] **Klären: `scale 2` oder `scale 1.5`?** — Widerspruch zu [[docs/05-hidpi-und-monitore]]
-- [ ] **Klären: baut `noctarow build` rootless oder rootful?**
-- [ ] swaybar vs. waybar per `cat 90-bar.conf` im Container klären (s. o., **nicht** blind 01 ändern)
-- [ ] [[docs/07-referenz-quellen]] korrigieren: `quickshell` kollidiert mit `noctalia-qs`
-- [ ] Erster Build und Switch
-- [ ] Nach erstem Boot: `pgrep -al waybar` leer? Login-Shell noch Nushell?
+- [ ] Nach erstem Boot auf dem Yoga: `pgrep -al waybar` leer?
 
 ## Verwandte Notizen
 
@@ -956,12 +919,5 @@ rpm -q noctalia-shell                          # v4.7.x — Sway-Workspace-Backe
 - [[docs/06-lenovo-yoga-deployment]]
 - [[docs/10-github-repository]]
 - [[docs/16-erkenntnisse-noctalia-container]]
-
-
-Naechster Schritt -- bewusst selbst ausfuehren:
-  sudo bootc switch --transport containers-storage localhost/noctarow:44
-  sudo systemctl reboot
-
-Rueckweg, falls der neue Stand nicht taugt:
-  sudo bootc rollback
-  sudo systemctl reboot
+- [[docs/23-displaylink-evdi-dozenten-pc]]
+- [[docs/24-noctarow-noctalia-handover]]
